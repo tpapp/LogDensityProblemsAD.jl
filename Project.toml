@@ -11,6 +11,10 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 
 [compat]
 julia = "1.6"
+DocStringExtensions = "0.8, 0.9"
+LogDensityProblems = "1"
+Requires = "0.5, 1"
+UnPack = "0.1, 1"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
