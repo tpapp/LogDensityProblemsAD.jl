@@ -1,7 +1,7 @@
 name = "LogDensityProblemsAD"
 uuid = "996a588d-648d-4e1f-a8f0-a84b347e47b1"
 authors = ["Tamás K. Papp <tkpapp@gmail.com>"]
-version = "1.0.0"
+version = "1.0.1"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -12,7 +12,7 @@ UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
 [compat]
 julia = "1.6"
 DocStringExtensions = "0.8, 0.9"
-LogDensityProblems = "1"
+LogDensityProblems = "1, 2"
 Requires = "0.5, 1"
 UnPack = "0.1, 1"
 
