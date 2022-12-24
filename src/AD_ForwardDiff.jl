@@ -16,30 +16,32 @@ function Base.show(io::IO, ℓ::ForwardDiffLogDensity)
           ", w/ chunk size ", length(ℓ.gradientconfig.seeds))
 end
 
-_default_chunk(ℓ) = ForwardDiff.Chunk(dimension(ℓ))
+_chunk(chunk::ForwardDiff.Chunk) = chunk
+_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
 
-function _default_gradientconfig(ℓ, chunk::ForwardDiff.Chunk)
-    ForwardDiff.GradientConfig(Base.Fix1(logdensity, ℓ), zeros(dimension(ℓ)), chunk)
-end
+_default_chunk(ℓ) = _chunk(dimension(ℓ))
 
-function _default_gradientconfig(ℓ, chunk::Integer)
-    _default_gradientconfig(ℓ, ForwardDiff.Chunk(chunk))
+_default_gradientconfig(ℓ, chunk, ::Nothing) = _default_gradientconfig(ℓ, chunk, zeros(dimension(ℓ)))
+function _default_gradientconfig(ℓ, chunk, x::AbstractVector)
+    return ForwardDiff.GradientConfig(Base.Fix1(logdensity, ℓ), x, _chunk(chunk))
 end
 
 """
-    ADgradient(:ForwardDiff, ℓ; chunk, gradientconfig)
-    ADgradient(Val(:ForwardDiff), ℓ; chunk, gradientconfig)
+    ADgradient(:ForwardDiff, ℓ; x, chunk, gradientconfig)
+    ADgradient(Val(:ForwardDiff), ℓ; x, chunk, gradientconfig)
 
 Wrap a log density that supports evaluation of `Value` to handle `ValueGradient`, using
 `ForwardDiff`.
 
 Keywords are passed on to `ForwardDiff.GradientConfig` to customize the setup. In
 particular, chunk size can be set with a `chunk` keyword argument (accepting an integer or a
-`ForwardDiff.Chunk`).
+`ForwardDiff.Chunk`), and the underlying vector used by `ForwardDiff` can be set with the
+`x` keyword argument (accepting an `AbstractVector`).
 """
 function ADgradient(::Val{:ForwardDiff}, ℓ;
-                    chunk = _default_chunk(ℓ),
-                    gradientconfig = _default_gradientconfig(ℓ, chunk))
+                    x::Union{Nothing,AbstractVector} = nothing,
+                    chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
+                    gradientconfig::ForwardDiff.GradientConfig = _default_gradientconfig(ℓ, chunk, x))
     ForwardDiffLogDensity(ℓ, gradientconfig)
 end
 
