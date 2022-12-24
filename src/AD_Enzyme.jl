@@ -57,7 +57,7 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
     y = logdensity(ℓ, x)
     ∂ℓ_∂x = zero(x)
     Enzyme.autodiff(mode, logdensity, Enzyme.Active,
-                    Const(ℓ),
+                    Enzyme.Const(ℓ),
                     Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end
