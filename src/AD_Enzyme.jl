@@ -44,7 +44,7 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
     @unpack ℓ, mode, shadow = ∇ℓ
     _shadow = shadow === nothing ? Enzyme.onehot(x) : shadow
     y, ∂ℓ_∂x = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
-                               Const(ℓ),
+                               Enzyme.Const(ℓ),
                                Enzyme.BatchDuplicated(x, _shadow))
     return y, collect(∂ℓ_∂x)
 end
