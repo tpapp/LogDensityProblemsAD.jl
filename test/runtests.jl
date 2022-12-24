@@ -61,8 +61,8 @@ struct TestLogDensity{F}
 end
 logdensity(ℓ::TestLogDensity, x) = ℓ.ℓ(x)
 dimension(::TestLogDensity) = 3
-test_logdensity1(x) = -2*abs2(x[1]) - 3*abs2(x[2]) - 5*abs2(x[3])
-test_logdensity(x) = any(x .< 0) ? -Inf : test_logdensity1(x)
+test_logdensity1(x) = -2 * abs2(x[1]) - 3 * abs2(x[2]) - 5 * abs2(x[3])
+test_logdensity(x::AbstractVector{T}) where {T} = any(x .< 0) ? -T(Inf) : test_logdensity1(x)
 test_gradient(x) = x .* [-4, -6, -10]
 TestLogDensity() = TestLogDensity(test_logdensity) # default: -Inf for negative input
 Base.show(io::IO, ::TestLogDensity) = print(io, "TestLogDensity")
@@ -123,6 +123,14 @@ end
         @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
             (test_logdensity(x), test_gradient(x))
     end
+
+    # Make sure that other types are supported.
+    x = randexp(Float32, 3)
+    ∇ℓ = ADgradient(:ForwardDiff, ℓ; input=x)
+    @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === Float32
+    @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
+    @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+        (test_logdensity(x), test_gradient(x))
 end
 
 @testset "chunk heuristics for ForwardDiff" begin
