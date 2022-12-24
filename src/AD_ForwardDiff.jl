@@ -16,14 +16,14 @@ function Base.show(io::IO, ℓ::ForwardDiffLogDensity)
           ", w/ chunk size ", length(ℓ.gradientconfig.seeds))
 end
 
-_default_chunk(ℓ) = ForwardDiff.Chunk(dimension(ℓ))
+_chunk(chunk::ForwardDiff.Chunk) = chunk
+_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
 
-function _default_gradientconfig(ℓ, chunk::ForwardDiff.Chunk, x::AbstractVector)
-    return ForwardDiff.GradientConfig(Base.Fix1(logdensity, ℓ), x, chunk)
-end
+_default_chunk(ℓ) = _chunk(dimension(ℓ))
 
-function _default_gradientconfig(ℓ, chunk::Integer, x::AbstractVector)
-    return _default_gradientconfig(ℓ, ForwardDiff.Chunk(chunk), x)
+_default_gradientconfig(ℓ, chunk, ::Nothing) = _default_gradientconfig(ℓ, chunk, zeros(dimension(ℓ)))
+function _default_gradientconfig(ℓ, chunk, x::AbstractVector)
+    return ForwardDiff.GradientConfig(Base.Fix1(logdensity, ℓ), x, _chunk(chunk))
 end
 
 """
@@ -39,7 +39,7 @@ particular, chunk size can be set with a `chunk` keyword argument (accepting an 
 `x` keyword argument (accepting an `AbstractVector`).
 """
 function ADgradient(::Val{:ForwardDiff}, ℓ;
-                    x = zeros(dimension(ℓ)),
+                    x = nothing,
                     chunk = _default_chunk(ℓ),
                     gradientconfig = _default_gradientconfig(ℓ, chunk, x))
     ForwardDiffLogDensity(ℓ, gradientconfig)
