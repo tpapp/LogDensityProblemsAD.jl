@@ -43,7 +43,8 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
                                  x::AbstractVector)
     @unpack ℓ, mode, shadow = ∇ℓ
     _shadow = shadow === nothing ? Enzyme.onehot(x) : shadow
-    y, ∂ℓ_∂x = Enzyme.autodiff(mode, Base.Fix1(logdensity, ℓ), Enzyme.BatchDuplicated,
+    y, ∂ℓ_∂x = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
+                               Const(ℓ),
                                Enzyme.BatchDuplicated(x, _shadow))
     return y, collect(∂ℓ_∂x)
 end
@@ -55,7 +56,8 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
     # Ref: https://github.com/EnzymeAD/Enzyme.jl/issues/107
     y = logdensity(ℓ, x)
     ∂ℓ_∂x = zero(x)
-    Enzyme.autodiff(mode, Base.Fix1(logdensity, ℓ), Enzyme.Active,
+    Enzyme.autodiff(mode, logdensity, Enzyme.Active,
+                    Const(ℓ),
                     Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end
