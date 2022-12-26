@@ -1,4 +1,19 @@
-import .Enzyme
+"""
+Gradient AD implementation using Enzyme.
+"""
+module EnzymeExt
+
+using LogDensityProblems: logdensity
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
+using UnPack: @unpack
+
+import LogDensityProblems: logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient
+if EXTENSIONS_SUPPORTED
+    import Enzyme
+else
+    import ..Enzyme
+end
 
 struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,Enzyme.ReverseMode},S} <: ADGradientWrapper
     ℓ::L
@@ -61,3 +76,5 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
                     Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end
+
+end # module

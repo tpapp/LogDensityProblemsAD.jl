@@ -1,4 +1,19 @@
-import .Zygote
+"""
+Gradient AD implementation using Zygote.
+"""
+module ZygoteExt
+
+using LogDensityProblems: logdensity
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
+using UnPack: @unpack
+
+import LogDensityProblems: logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient
+if EXTENSIONS_SUPPORTED
+    import Zygote
+else
+    import ..Zygote
+end
 
 struct ZygoteGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
@@ -19,3 +34,5 @@ function logdensity_and_gradient(∇ℓ::ZygoteGradientLogDensity, x::AbstractVe
     y, back = Zygote.pullback(Base.Fix1(logdensity, ℓ), x)
     y, first(back(Zygote.sensitivity(y)))
 end
+
+end # module

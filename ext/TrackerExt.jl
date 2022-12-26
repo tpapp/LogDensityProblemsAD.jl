@@ -1,8 +1,19 @@
-#####
-##### Gradient AD implementation using Tracker
-#####
+"""
+Gradient AD implementation using Tracker.
+"""
+module TrackerExt
 
-import .Tracker
+using LogDensityProblems: logdensity
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
+using UnPack: @unpack
+
+import LogDensityProblems: logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient
+if EXTENSIONS_SUPPORTED
+    import Tracker
+else
+    import ..Tracker
+end
 
 struct TrackerGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
@@ -29,3 +40,5 @@ function logdensity_and_gradient(∇ℓ::TrackerGradientLogDensity, x::AbstractV
     S = typeof(z + 0.0)
     S(yval)::S, (S.(first(Tracker.data.(back(1)))))::Vector{S}
 end
+
+end # module

@@ -1,9 +1,8 @@
-#####
-##### Helper functions for working with DiffResults
-#####
-##### Only included when required by AD wrappers.
-
-import .DiffResults
+###
+### Helper functions for working with DiffResults.
+### Only included when required by AD wrappers.
+### Requires that `DiffResults` and `DocStringExtensions.SIGNATURES` are available.
+###
 
 """
 $(SIGNATURES)

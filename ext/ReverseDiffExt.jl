@@ -1,10 +1,25 @@
-#####
-##### Gradient AD implementation using ReverseDiff
-#####
+"""
+Gradient AD implementation using ReverseDiff.
+"""
+module ReverseDiffExt
 
-import .ReverseDiff
+using DocStringExtensions: SIGNATURES
+using LogDensityProblems: dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
+using UnPack: @unpack
 
-import .ReverseDiff.DiffResults # should load DiffResults_helpers.jl
+import LogDensityProblems: logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient
+if EXTENSIONS_SUPPORTED
+    import ReverseDiff
+    import ReverseDiff: DiffResults
+else
+    import ..ReverseDiff
+    import ..ReverseDiff: DiffResults
+end
+
+# Load DiffResults helpers
+include("DiffResults_helpers.jl")
 
 struct ReverseDiffLogDensity{L,C} <: ADGradientWrapper
     ℓ::L
@@ -29,7 +44,8 @@ By default, no tape is created.
     However, if the log density contains branches, use of a compiled tape can lead to silently incorrect results.
 """
 function ADgradient(::Val{:ReverseDiff}, ℓ;
-                    compile::Union{Val{true},Val{false}}=Val(false), x::Union{Nothing,AbstractVector}=nothing)
+                    compile::Union{Val{true},Val{false}}=Val(false),
+                    x::Union{Nothing,AbstractVector}=nothing)
     ReverseDiffLogDensity(ℓ, _compiledtape(ℓ, compile, x))
 end
 
@@ -58,3 +74,5 @@ function logdensity_and_gradient(∇ℓ::ReverseDiffLogDensity, x::AbstractVecto
     end
     _diffresults_extract(result)
 end
+
+end # module
