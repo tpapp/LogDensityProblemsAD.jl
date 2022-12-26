@@ -1,10 +1,25 @@
-#####
-##### Gradient AD implementation using ForwardDiff
-#####
+"""
+Gradient AD implementation using ForwardDiff.
+"""
+module ForwardDiffExt
 
-import .ForwardDiff
+using DocStringExtensions: SIGNATURES
+using LogDensityProblems: dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
+using UnPack: @unpack
 
-import .ForwardDiff.DiffResults # should load DiffResults_helpers.jl
+import LogDensityProblems: logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient
+if EXTENSIONS_SUPPORTED
+    import ForwardDiff
+    import ForwardDiff: DiffResults
+else
+    import ..ForwardDiff
+    import ..ForwardDiff: DiffResults
+end
+
+# Load DiffResults helpers
+include("DiffResults_helpers.jl")
 
 struct ForwardDiffLogDensity{L, C} <: ADGradientWrapper
     ℓ::L
@@ -51,3 +66,5 @@ function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
     result = ForwardDiff.gradient!(buffer, Base.Fix1(logdensity, ℓ), x, gradientconfig)
     _diffresults_extract(result)
 end
+
+end # module
