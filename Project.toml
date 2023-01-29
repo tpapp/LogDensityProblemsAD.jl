@@ -1,13 +1,29 @@
 name = "LogDensityProblemsAD"
 uuid = "996a588d-648d-4e1f-a8f0-a84b347e47b1"
 authors = ["Tamás K. Papp <tkpapp@gmail.com>"]
-version = "1.1.1"
+version = "1.2.0"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 Requires = "ae029012-a4dd-5104-9daa-d747884805df"
 UnPack = "3a884ed6-31ef-47d7-9d2a-63182c4928ed"
+
+[weakdeps]
+BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
+Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
+Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
+
+[extensions]
+EnzymeExt = "Enzyme"
+ForwardDiffBenchmarkToolsExt = ["BenchmarkTools", "ForwardDiff"]
+ForwardDiffExt = "ForwardDiff"
+ReverseDiffExt = "ReverseDiff"
+TrackerExt = "Tracker"
+ZygoteExt = "Zygote"
 
 [compat]
 julia = "1.6"
@@ -18,9 +34,8 @@ UnPack = "0.1, 1"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
-DiffResults = "163ba53b-c6d8-5494-b064-1a9d43ac40c5"
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
-Pkg = "44cfe95a-1eb2-52ea-b672-e2afdf69b78f"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 Test = "8dfed614-e22c-5e08-85e1-65c5234f0b40"
@@ -28,4 +43,4 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = ["BenchmarkTools", "ForwardDiff", "Pkg", "Random", "ReverseDiff", "Test", "Tracker", "Zygote"]
+test = ["BenchmarkTools", "Enzyme", "ForwardDiff", "Random", "ReverseDiff", "Test", "Tracker", "Zygote"]

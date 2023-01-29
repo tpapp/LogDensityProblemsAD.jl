@@ -1,5 +1,23 @@
-using .BenchmarkTools: @belapsed
-using .ForwardDiff
+"""
+Utilities for benchmarking a log density problem with various chunk sizes using ForwardDiff.
+
+Loaded when both ForwardDiff and BenchmarkTools are loaded.
+"""
+module ForwardDiffBenchmarkToolsExt
+
+using DocStringExtensions: SIGNATURES
+using LogDensityProblems: dimension, logdensity_and_gradient
+using LogDensityProblemsAD: ADgradient, EXTENSIONS_SUPPORTED
+
+if EXTENSIONS_SUPPORTED
+    using BenchmarkTools: @belapsed
+    using ForwardDiff: Chunk
+else
+    using ..BenchmarkTools: @belapsed
+    using ..ForwardDiff: Chunk
+end
+
+import LogDensityProblemsAD: benchmark_ForwardDiff_chunks, heuristic_chunks
 
 """
 $(SIGNATURES)
@@ -38,8 +56,10 @@ function benchmark_ForwardDiff_chunks(ℓ;
                                       markprogress = true,
                                       x = zeros(dimension(ℓ)))
     map(chunks) do chunk
-        ∇ℓ = ADgradient(Val(:ForwardDiff), ℓ; chunk = ForwardDiff.Chunk(chunk))
+        ∇ℓ = ADgradient(Val(:ForwardDiff), ℓ; chunk = Chunk(chunk))
         markprogress && print(".")
         chunk => @belapsed logdensity_and_gradient($(∇ℓ), $(x))
     end
 end
+
+end # module
