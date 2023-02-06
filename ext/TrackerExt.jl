@@ -3,12 +3,10 @@ Gradient AD implementation using Tracker.
 """
 module TrackerExt
 
-using LogDensityProblems: logdensity
-using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED
-using UnPack: @unpack
+using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, logdensity
+using LogDensityProblemsAD.UnPack: @unpack
 
-import LogDensityProblems: logdensity_and_gradient
-import LogDensityProblemsAD: ADgradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 if EXTENSIONS_SUPPORTED
     import Tracker
 else
