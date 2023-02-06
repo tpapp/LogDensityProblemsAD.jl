@@ -5,9 +5,7 @@ Loaded when both ForwardDiff and BenchmarkTools are loaded.
 """
 module ForwardDiffBenchmarkToolsExt
 
-using DocStringExtensions: SIGNATURES
-using LogDensityProblems: dimension, logdensity_and_gradient
-using LogDensityProblemsAD: ADgradient, EXTENSIONS_SUPPORTED
+using LogDensityProblemsAD: ADgradient, EXTENSIONS_SUPPORTED, SIGNATURES, dimension, logdensity_and_gradient
 
 if EXTENSIONS_SUPPORTED
     using BenchmarkTools: @belapsed

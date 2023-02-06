@@ -9,6 +9,8 @@ using DocStringExtensions: SIGNATURES
 import LogDensityProblems: logdensity, logdensity_and_gradient, capabilities, dimension
 using LogDensityProblems: LogDensityOrder
 
+import UnPack
+
 
 #####
 ##### AD wrappers --- interface and generic code
