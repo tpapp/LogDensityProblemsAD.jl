@@ -73,7 +73,7 @@ Keyword arguments:
 function ADgradient(::Val{:ForwardDiff}, ℓ;
                     x::Union{Nothing,AbstractVector} = nothing,
                     chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
-                    gradient_config_type::Union{Nothing,Type{T}} = nothing) where {T<:Real}
+                    tag:Union{Nothing,ForwardDiff.Tag} = nothing)
     gradient_config = if gradient_config_type ≡ nothing
         nothing
     else
