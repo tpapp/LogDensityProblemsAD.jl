@@ -77,10 +77,9 @@ function ADgradient(::Val{:ForwardDiff}, ℓ;
     gradient_config = if gradient_config_type ≡ nothing
         nothing
     else
-        S = gradient_config_type
-        (isconcretetype(T) && (S <: Real)) ||
+        isconcretetype(T) ||
             throw(ArgumentError("gradient_config_type needs to be a concrete subtype of Real."))
-        _make_gradient_config(S, ℓ, chunk)
+        _make_gradient_config(T, ℓ, chunk)
     end
     ForwardDiffLogDensity(ℓ, chunk, gradient_config)
 end
