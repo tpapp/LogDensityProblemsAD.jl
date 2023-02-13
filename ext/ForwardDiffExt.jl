@@ -91,7 +91,7 @@ function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
     if gradient_config ≡ nothing
         gradient_config = _make_gradient_config(eltype(x), ℓ, chunk)
     end
-    result = ForwardDiff.gradient!(buffer, Base.Fix1(logdensity, ℓ), x, gradientconfig)
+    result = ForwardDiff.gradient!(buffer, Base.Fix1(logdensity, ℓ), x, gradient_config)
     _diffresults_extract(result)
 end
 
