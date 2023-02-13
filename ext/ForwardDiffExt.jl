@@ -60,10 +60,12 @@ Keyword arguments:
 
 - `chunk` can be used to set the chunk size, an integer or a `ForwardDiff.Chunk`
 
-- `gradient_config_type` can be `nothing` (the default) or a type (eg `Float64`).
+- `gradientconfig` can be
+   1. `nothing` (the default), for creating a gradient config for each call,
+   2. a type (eg `Float64`), for preallocating a gradient config using that type, or
+   3. a `ForwardDiff.GradientConfig` value, which is used directly.
 
-   The latter preallocates and reuses a `ForwardDiff.GradientConfig` for that type. Note
-   that **this option is not thread-safe**. You can [`copy`](@ref) the results for
+   Note **the last two options are not thread-safe**. You can [`copy`](@ref) the results for
    concurrent evaluation:
    ```julia
    ∇ℓ1 = ADgradient(:ForwardDiff, ℓ; gradient_config_type = Float64)
@@ -73,9 +75,11 @@ Keyword arguments:
 function ADgradient(::Val{:ForwardDiff}, ℓ;
                     x::Union{Nothing,AbstractVector} = nothing,
                     chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
-                    gradient_config_type::Union{Nothing,Type{T}} = nothing) where {T<:Real}
-    gradient_config = if gradient_config_type ≡ nothing
+                    gradientconfig::Union{Nothing,Type{T},ForwardDiff.GradientConfig} = nothing) where {T<:Real}
+    gradient_config = if gradientconfig ≡ nothing
         nothing
+    elseif gradientconfig isa ForwardDiff.GradientConfig
+        gradientconfig
     else
         isconcretetype(T) ||
             throw(ArgumentError("gradient_config_type needs to be a concrete subtype of Real."))
