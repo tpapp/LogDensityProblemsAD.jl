@@ -43,7 +43,7 @@ function _make_gradient_config(::Type{T}, ℓ, chunk) where T
                                _chunk(chunk))
 end
 
-function Base.copy(fℓ::ForwardDiffLogDensity{L,C,G<:ForwardDiff.GradientConfig{T}}) where {L,C,G,T}
+function Base.copy(fℓ::ForwardDiffLogDensity{L,C,<:ForwardDiff.GradientConfig{T}}) where {L,C,T}
     @unpack ℓ, chunk = fℓ
     gradient_config =_make_gradient_config(T, ℓ, chunk)
     ForwardDiffLogDensity(ℓ, chunk, gradient_config)
