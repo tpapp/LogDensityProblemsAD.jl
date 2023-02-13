@@ -115,9 +115,9 @@ end
             (test_logdensity(x), test_gradient(x))
     end
 
-    # Make sure that other types are supported.
+    # preallocated gradient
     x = randexp(Float32, 3)
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ; x=x)
+    ∇ℓ = ADgradient(:ForwardDiff, ℓ; gradient_config_type = Float32)
     @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === Float32
     @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
