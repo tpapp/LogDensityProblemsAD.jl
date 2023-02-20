@@ -77,7 +77,7 @@ const EXTENSIONS_SUPPORTED = isdefined(Base, :get_extension)
 if !EXTENSIONS_SUPPORTED
     using Requires: @require
 end
-if !EXTENSIONS_SUPPORTED
+@static if !EXTENSIONS_SUPPORTED
     function __init__()
         @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" begin
             include("../ext/LogDensityProblemsADForwardDiffExt.jl")
