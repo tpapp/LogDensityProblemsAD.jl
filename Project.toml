@@ -28,6 +28,7 @@ ZygoteExt = "Zygote"
 [compat]
 julia = "1.6"
 DocStringExtensions = "0.8, 0.9"
+Enzyme = "0.10.18"
 LogDensityProblems = "1, 2"
 Requires = "0.5, 1"
 UnPack = "0.1, 1"
