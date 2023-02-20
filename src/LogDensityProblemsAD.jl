@@ -77,18 +77,18 @@ const EXTENSIONS_SUPPORTED = isdefined(Base, :get_extension)
 if !EXTENSIONS_SUPPORTED
     using Requires: @require
 end
-function __init__()
-    @static if !EXTENSIONS_SUPPORTED
+if !EXTENSIONS_SUPPORTED
+    function __init__()
         @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" begin
-            include("../ext/ForwardDiffExt.jl")
+            include("../ext/LogDensityProblemsADForwardDiffExt.jl")
             @require BenchmarkTools="6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf" begin
-                include("../ext/ForwardDiffBenchmarkToolsExt.jl")
+                include("../ext/LogDensityProblemsADForwardDiffBenchmarkToolsExt.jl")
             end
         end
-        @require Tracker="9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("../ext/TrackerExt.jl")
-        @require Zygote="e88e6eb3-aa80-5325-afca-941959d7151f" include("../ext/ZygoteExt.jl")
-        @require ReverseDiff="37e2e3b7-166d-5795-8a7a-e32c996b4267" include("../ext/ReverseDiffExt.jl")
-        @require Enzyme="7da242da-08ed-463a-9acd-ee780be4f1d9" include("../ext/EnzymeExt.jl")
+        @require Tracker="9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("../ext/LogDensityProblemsADTrackerExt.jl")
+        @require Zygote="e88e6eb3-aa80-5325-afca-941959d7151f" include("../ext/LogDensityProblemsADZygoteExt.jl")
+        @require ReverseDiff="37e2e3b7-166d-5795-8a7a-e32c996b4267" include("../ext/LogDensityProblemsADReverseDiffExt.jl")
+        @require Enzyme="7da242da-08ed-463a-9acd-ee780be4f1d9" include("../ext/LogDensityProblemsADEnzymeExt.jl")
     end
 end
 

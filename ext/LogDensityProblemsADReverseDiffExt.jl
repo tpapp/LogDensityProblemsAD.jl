@@ -1,7 +1,7 @@
 """
 Gradient AD implementation using ReverseDiff.
 """
-module ReverseDiffExt
+module LogDensityProblemsADReverseDiffExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, SIGNATURES, dimension, logdensity
 using LogDensityProblemsAD.UnPack: @unpack
