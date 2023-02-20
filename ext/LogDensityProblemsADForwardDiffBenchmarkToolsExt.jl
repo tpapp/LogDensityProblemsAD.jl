@@ -3,7 +3,7 @@ Utilities for benchmarking a log density problem with various chunk sizes using 
 
 Loaded when both ForwardDiff and BenchmarkTools are loaded.
 """
-module LogDensityProblemsForwardDiffBenchmarkToolsExt
+module LogDensityProblemsADForwardDiffBenchmarkToolsExt
 
 using LogDensityProblemsAD: ADgradient, EXTENSIONS_SUPPORTED, SIGNATURES, dimension, logdensity_and_gradient
 
