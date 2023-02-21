@@ -1,7 +1,7 @@
 """
 Gradient AD implementation using Enzyme.
 """
-module EnzymeExt
+module LogDensityProblemsADEnzymeExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, logdensity
 using LogDensityProblemsAD.UnPack: @unpack

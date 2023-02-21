@@ -1,7 +1,7 @@
 """
 Gradient AD implementation using Tracker.
 """
-module TrackerExt
+module LogDensityProblemsADTrackerExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, logdensity
 using LogDensityProblemsAD.UnPack: @unpack
