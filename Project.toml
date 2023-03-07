@@ -18,12 +18,12 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extensions]
-EnzymeExt = "Enzyme"
-ForwardDiffBenchmarkToolsExt = ["BenchmarkTools", "ForwardDiff"]
-ForwardDiffExt = "ForwardDiff"
-ReverseDiffExt = "ReverseDiff"
-TrackerExt = "Tracker"
-ZygoteExt = "Zygote"
+LogDensityProblemsADEnzymeExt = "Enzyme"
+LogDensityProblemsADForwardDiffBenchmarkToolsExt = ["BenchmarkTools", "ForwardDiff"]
+LogDensityProblemsADForwardDiffExt = "ForwardDiff"
+LogDensityProblemsADReverseDiffExt = "ReverseDiff"
+LogDensityProblemsADTrackerExt = "Tracker"
+LogDensityProblemsADZygoteExt = "Zygote"
 
 [compat]
 julia = "1.6"

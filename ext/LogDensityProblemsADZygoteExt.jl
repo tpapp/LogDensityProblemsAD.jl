@@ -1,7 +1,7 @@
 """
 Gradient AD implementation using Zygote.
 """
-module ZygoteExt
+module LogDensityProblemsADZygoteExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, logdensity
 using LogDensityProblemsAD.UnPack: @unpack
