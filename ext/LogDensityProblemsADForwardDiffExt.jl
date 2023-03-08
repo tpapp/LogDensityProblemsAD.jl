@@ -4,7 +4,7 @@ Gradient AD implementation using ForwardDiff.
 module LogDensityProblemsADForwardDiffExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, SIGNATURES, dimension, logdensity
-using LogDensityProblemsAD.UnPack: @unpack
+using LogDensityProblemsAD.SimpleUnPack: @unpack
 
 import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 if EXTENSIONS_SUPPORTED
