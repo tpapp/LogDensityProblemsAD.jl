@@ -79,7 +79,7 @@ Keyword arguments:
 - `x` (default: `nothing`) will be used to preallocate a `ForwardDiff.GradientConfig` with
   the given vector. With the default, one is created for each evaluation.
 
-   Note **pre-allocating a `ForwardDiff.GradienConfig` is not thread-safe**. You can
+   Note **pre-allocating a `ForwardDiff.GradientConfig` is not thread-safe**. You can
    [`copy`](@ref) the results for concurrent evaluation:
    ```julia
    ∇ℓ1 = ADgradient(:ForwardDiff, ℓ; x = zeros(dimension(ℓ)))
