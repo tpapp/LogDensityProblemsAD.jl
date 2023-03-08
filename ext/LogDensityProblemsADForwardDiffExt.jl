@@ -100,10 +100,9 @@ end
 function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
     @unpack ℓ, chunk, tag, gradient_config = fℓ
     buffer = _diffresults_buffer(x)
+    ℓ′ = Base.Fix1(logdensity, ℓ)
     if gradient_config ≡ nothing
-        gradient_config, ℓ′ = _make_gradient_config(x, ℓ, chunk, tag)
-    else
-        ℓ′ = Base.Fix1(logdensity, ℓ)
+        gradient_config = _make_gradient_config(ℓ′, x, chunk, tag)
     end
     result = ForwardDiff.gradient!(buffer, ℓ′, x, gradient_config)
     _diffresults_extract(result)
