@@ -85,6 +85,8 @@ Keyword arguments:
    ∇ℓ1 = ADgradient(:ForwardDiff, ℓ; x = zeros(dimension(ℓ)))
    ∇ℓ2 = copy(∇ℓ1) # you can now use both, in different threads
    ```
+
+    See also the ForwardDiff documentation regarding [`ForwardDiff.GradientConfig`](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers) and [chunks and tags](https://juliadiff.org/ForwardDiff.jl/stable/user/advanced/).
 """
 function ADgradient(::Val{:ForwardDiff}, ℓ;
                     chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
