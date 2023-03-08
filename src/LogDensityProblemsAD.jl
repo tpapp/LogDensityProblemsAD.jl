@@ -11,7 +11,6 @@ using LogDensityProblems: LogDensityOrder
 
 import SimpleUnPack
 
-
 #####
 ##### AD wrappers --- interface and generic code
 #####
@@ -33,6 +32,8 @@ capabilities(::Type{<:ADGradientWrapper}) = LogDensityOrder{1}()
 dimension(ℓ::ADGradientWrapper) = dimension(ℓ.ℓ)
 
 Base.parent(ℓ::ADGradientWrapper) = ℓ.ℓ
+
+Base.copy(x::ADGradientWrapper) = x # no-op, except for ForwardDiff
 
 """
 $(SIGNATURES)
@@ -57,6 +58,10 @@ ADgradient(:ForwardDiff, P)
 and should mostly be equivalent if the compiler manages to fold the constant.
 
 The function `parent` can be used to retrieve the original argument.
+
+!!! note
+    With the default options, automatic differentiation preserves thread-safety. See
+    exceptions and workarounds in the docstring for each backend.
 """
 ADgradient(kind::Symbol, P; kwargs...) = ADgradient(Val{kind}(), P; kwargs...)
 
