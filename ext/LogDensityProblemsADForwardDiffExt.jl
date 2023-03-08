@@ -49,7 +49,7 @@ end
 $(SIGNATURES)
 
 Make a `ForwardDiff.GradientConfig` for function `f` and input `x`. `tag = nothing` generates the default tag.
-```
+"""
 function _make_gradient_config(f::F, x, chunk, tag) where {F}
     c = _chunk(chunk)
     gradient_config = if tag ≡ nothing
@@ -76,14 +76,16 @@ Keyword arguments:
 - `x` (default: `nothing`) will be used to preallocate a `ForwardDiff.GradientConfig` with
   the given vector. With the default, one is created for each evaluation.
 
-   Note **pre-allocating a `ForwardDiff.GradientConfig` is not thread-safe**. You can
-   [`copy`](@ref) the results for concurrent evaluation:
-   ```julia
-   ∇ℓ1 = ADgradient(:ForwardDiff, ℓ; x = zeros(dimension(ℓ)))
-   ∇ℓ2 = copy(∇ℓ1) # you can now use both, in different threads
-   ```
+Note that **pre-allocating a `ForwardDiff.GradientConfig` is not thread-safe**. You can
+[`copy`](@ref) the results for concurrent evaluation:
+```julia
+∇ℓ1 = ADgradient(:ForwardDiff, ℓ; x = zeros(dimension(ℓ)))
+∇ℓ2 = copy(∇ℓ1) # you can now use both, in different threads
+```
 
-    See also the ForwardDiff documentation regarding [`ForwardDiff.GradientConfig`](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers) and [chunks and tags](https://juliadiff.org/ForwardDiff.jl/stable/user/advanced/).
+See also the ForwardDiff documentation regarding
+[`ForwardDiff.GradientConfig`](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers)
+and [chunks and tags](https://juliadiff.org/ForwardDiff.jl/stable/user/advanced/).
 """
 function ADgradient(::Val{:ForwardDiff}, ℓ;
                     chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
