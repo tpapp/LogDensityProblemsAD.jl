@@ -92,7 +92,7 @@ function ADgradient(::Val{:ForwardDiff}, ℓ;
     gradient_config = if x ≡ nothing
         nothing
     else
-        first(_make_gradient_config(x, ℓ, chunk, tag))
+        _make_gradient_config(Base.Fix1(logdensity, ℓ), x, chunk, tag)
     end
     ForwardDiffLogDensity(ℓ, chunk, tag, gradient_config)
 end
