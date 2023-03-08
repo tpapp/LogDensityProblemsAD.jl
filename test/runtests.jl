@@ -115,13 +115,14 @@ end
             (test_logdensity(x), test_gradient(x))
     end
 
-    # preallocated gradient
+    # preallocated gradient config
     x = randexp(Float32, 3)
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ; gradientconfig = Float32)
+    ∇ℓ = ADgradient(:ForwardDiff, ℓ; gradient_config_type = Float32)
     @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === Float32
     @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
         (test_logdensity(x), test_gradient(x))
+    @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
 end
 
 @testset "chunk heuristics for ForwardDiff" begin
