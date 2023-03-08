@@ -48,19 +48,16 @@ end
 """
 $(SIGNATURES)
 
-Make a `ForwardDiff.GradientConfig` for input `x`. `tag = nothing` generates the default tag.
-
-Return the function for evaluating log density (with a vector argument) as the second value.
-"""
-function _make_gradient_config(x, ℓ, chunk, tag)
-    ℓ′ = Base.Fix1(logdensity, ℓ)
+Make a `ForwardDiff.GradientConfig` for function `f` and input `x`. `tag = nothing` generates the default tag.
+```
+function _make_gradient_config(f::F, x, chunk, tag) where {F}
     c = _chunk(chunk)
     gradient_config = if tag ≡ nothing
-        ForwardDiff.GradientConfig(ℓ′, x, c)
+        ForwardDiff.GradientConfig(f, x, c)
     else
-        ForwardDiff.GradientConfig(ℓ′, x, c, tag)
+        ForwardDiff.GradientConfig(f, x, c, tag)
     end
-    gradient_config, ℓ′
+    gradient_config
 end
 
 """
