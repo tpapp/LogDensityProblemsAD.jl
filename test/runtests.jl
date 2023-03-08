@@ -4,6 +4,7 @@ import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
 import ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
 import BenchmarkTools                            # load the heuristic chunks code
+using ComponentArrays: ComponentVector           # test with other vector types
 
 struct EnzymeTestMode <: Enzyme.Mode end
 
@@ -123,6 +124,22 @@ end
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
         (test_logdensity(x), test_gradient(x))
     @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
+end
+
+@testset "component vectors" begin
+    # test with something else than `Vector`
+    # cf https://github.com/tpapp/LogDensityProblemsAD.jl/pull/3
+    ℓ = TestLogDensity()
+    ∇ℓ = ADgradient(:ForwardDiff, ℓ)
+    x = zeros(3)
+    y = ComponentVector(x = x)
+    @test @inferred(logdensity(∇ℓ, y)) ≅ test_logdensity(x)
+    @test @inferred(logdensity_and_gradient(∇ℓ, y)) ≅
+        (test_logdensity(x), test_gradient(x))
+    ∇ℓ2 = ADgradient(:ForwardDiff, ℓ; x = y) # preallocate GradientConfig
+    @test @inferred(logdensity(∇ℓ2, y)) ≅ test_logdensity(x)
+    @test @inferred(logdensity_and_gradient(∇ℓ2, y)) ≅
+        (test_logdensity(x), test_gradient(x))
 end
 
 @testset "chunk heuristics for ForwardDiff" begin
