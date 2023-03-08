@@ -1,7 +1,7 @@
 """
 Gradient AD implementation using ForwardDiff.
 """
-module ForwardDiffExt
+module LogDensityProblemsADForwardDiffExt
 
 using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, SIGNATURES, dimension, logdensity
 using LogDensityProblemsAD.UnPack: @unpack
