@@ -3,13 +3,17 @@ Gradient AD implementation using Enzyme.
 """
 module LogDensityProblemsADEnzymeExt
 
-using LogDensityProblemsAD: ADGradientWrapper, EXTENSIONS_SUPPORTED, logdensity
-using LogDensityProblemsAD.SimpleUnPack: @unpack
+if isdefined(Base, :get_extension)
+    using LogDensityProblemsAD: ADGradientWrapper, logdensity
+    using LogDensityProblemsAD.SimpleUnPack: @unpack
 
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-if EXTENSIONS_SUPPORTED
+    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import Enzyme
 else
+    using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
+    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
+
+    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..Enzyme
 end
 
