@@ -68,14 +68,10 @@ end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
                                  x::AbstractVector)
-    @unpack ℓ, mode = ∇ℓ
-    # Currently it is not possible to retrieve the primal together with the derivatives.
-    # Ref: https://github.com/EnzymeAD/Enzyme.jl/issues/107
-    y = logdensity(ℓ, x)
+    @unpack ℓ = ∇ℓ
     ∂ℓ_∂x = zero(x)
-    Enzyme.autodiff(mode, logdensity, Enzyme.Active,
-                    Enzyme.Const(ℓ),
-                    Enzyme.Duplicated(x, ∂ℓ_∂x))
+    _, y = Enzyme.autodiff(Enzyme.ReverseWithPrimal, logdensity, Enzyme.Active,
+                           Enzyme.Const(ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end
 
