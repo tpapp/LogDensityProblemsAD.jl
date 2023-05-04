@@ -33,7 +33,7 @@ Robust and mature implementation, but not necessarily the fastest. Scales more o
 
 3. [Zygote.jl](https://fluxml.ai/Zygote.jl/latest/) and [Tracker.jl](https://github.com/FluxML/Tracker.jl)
 
-May be a viable choice if Enzyme is not working for your problem, and calculations are performed on matrices and vectors, not scalars. Benchmark against alternatives above. Of the two, Zygote is more actively maintained.
+May be a viable choice if Enzyme is not working for your problem, and calculations are non-mutating and performed on matrices and vectors, not scalars. Benchmark against alternatives above. Of the two, Zygote is more actively maintained.
 
 4. [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
 
