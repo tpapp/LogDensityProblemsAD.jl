@@ -28,7 +28,6 @@ LogDensityProblemsADZygoteExt = "Zygote"
 [compat]
 julia = "1.6"
 DocStringExtensions = "0.8, 0.9"
-Enzyme = "0.11"
 LogDensityProblems = "1, 2"
 Requires = "0.5, 1"
 SimpleUnPack = "1"
