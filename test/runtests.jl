@@ -124,6 +124,9 @@ end
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
         (test_logdensity(x), test_gradient(x))
     @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
+
+    # chunk size as integers
+    @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
 end
 
 @testset "component vectors" begin
