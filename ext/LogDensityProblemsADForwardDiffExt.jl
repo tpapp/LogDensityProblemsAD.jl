@@ -6,15 +6,15 @@ module LogDensityProblemsADForwardDiffExt
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
     using LogDensityProblemsAD.SimpleUnPack: @unpack
-    
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
+
+    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ForwardDiff
     import ForwardDiff: DiffResults
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
     using ..LogDensityProblemsAD.SimpleUnPack: @unpack
-    
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
+
+    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..ForwardDiff
     import ..ForwardDiff: DiffResults
 end
@@ -39,10 +39,10 @@ function Base.show(io::IO, ℓ::ForwardDiffLogDensity)
           ", w/ chunk size ", ForwardDiff.chunksize(ℓ.chunk))
 end
 
-_chunk(chunk::ForwardDiff.Chunk) = chunk
-_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
+_ensure_chunk(chunk::ForwardDiff.Chunk) = chunk
+_ensure_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
 
-_default_chunk(ℓ) = _chunk(dimension(ℓ))
+_default_chunk(ℓ) = _ensure_chunk(dimension(ℓ))
 
 function Base.copy(fℓ::ForwardDiffLogDensity{L,C,T,<:ForwardDiff.GradientConfig}) where {L,C,T}
     @unpack ℓ, chunk, tag, gradient_config = fℓ
@@ -54,12 +54,11 @@ $(SIGNATURES)
 
 Make a `ForwardDiff.GradientConfig` for function `f` and input `x`. `tag = nothing` generates the default tag.
 """
-function _make_gradient_config(f::F, x, chunk, tag) where {F}
-    c = _chunk(chunk)
+function _make_gradient_config(f::F, x, chunk::ForwardDiff.Chunk, tag) where {F}
     gradient_config = if tag ≡ nothing
-        ForwardDiff.GradientConfig(f, x, c)
+        ForwardDiff.GradientConfig(f, x, chunk)
     else
-        ForwardDiff.GradientConfig(f, x, c, tag)
+        ForwardDiff.GradientConfig(f, x, chunk, tag)
     end
     gradient_config
 end
@@ -95,12 +94,13 @@ function ADgradient(::Val{:ForwardDiff}, ℓ;
                     chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
                     tag::Union{Nothing,ForwardDiff.Tag} = nothing,
                     x::Union{Nothing,AbstractVector} = nothing)
+    _chunk = _ensure_chunk(chunk)
     gradient_config = if x ≡ nothing
         nothing
     else
-        _make_gradient_config(Base.Fix1(logdensity, ℓ), x, chunk, tag)
+        _make_gradient_config(Base.Fix1(logdensity, ℓ), x, _chunk, tag)
     end
-    ForwardDiffLogDensity(ℓ, chunk, tag, gradient_config)
+    ForwardDiffLogDensity(ℓ, _chunk, tag, gradient_config)
 end
 
 function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
