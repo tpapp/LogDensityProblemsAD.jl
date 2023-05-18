@@ -42,7 +42,7 @@ end
 _ensure_chunk(chunk::ForwardDiff.Chunk) = chunk
 _ensure_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
 
-_default_chunk(ℓ) = _chunk(dimension(ℓ))
+_default_chunk(ℓ) = _ensure_chunk(dimension(ℓ))
 
 function Base.copy(fℓ::ForwardDiffLogDensity{L,C,T,<:ForwardDiff.GradientConfig}) where {L,C,T}
     @unpack ℓ, chunk, tag, gradient_config = fℓ
