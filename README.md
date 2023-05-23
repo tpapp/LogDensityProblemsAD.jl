@@ -29,7 +29,7 @@ Before using AD, make sure your code is type stable, inferred correctly, and min
 using LogDensityProblems, BenchmarkTools, Test
 x = zeros(LogDensityProblems.dimension(ℓ)) # ℓ is your log density
 @inferred LogDensityProblems.logdensity(ℓ, x) # check inference, also see @code_warntype
-@benchmark LogDensityProblems.logdensity(ℓ, x) # check performance and allocations
+@benchmark LogDensityProblems.logdensity($ℓ, $x) # check performance and allocations
 ```
 
 1. [ForwardDiff.jl](https://github.com/JuliaDiff/ForwardDiff.jl)
