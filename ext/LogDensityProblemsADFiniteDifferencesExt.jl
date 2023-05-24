@@ -44,7 +44,7 @@ end
 function logdensity_and_gradient(∇ℓ::FiniteDifferencesGradientLogDensity, x::AbstractVector)
     @unpack ℓ, fdm = ∇ℓ
     y = logdensity(ℓ, x)
-    ∇y = FiniteDifferences.grad(fdm, x -> logdensity(ℓ, x), x)[1]
+    ∇y = only(FiniteDifferences.grad(fdm, Base.Fix1(logdensity, ℓ), x))
     y, ∇y
 end
 
