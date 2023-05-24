@@ -2,7 +2,7 @@
 
 ![lifecycle](https://img.shields.io/badge/lifecycle-maturing-blue.svg)
 [![build](https://github.com/tpapp/LogDensityProblemsAD.jl/workflows/CI/badge.svg)](https://github.com/tpapp/LogDensityProblemsAD.jl/actions?query=workflow%3ACI)
-[![codecov.io](http://codecov.io/github/tpapp/LogDensityProblemsAD.jl/coverage.svg?branch=master)](http://codecov.io/github/tpapp/LogDensityProblemsAD.jl?branch=master)
+[![codecov](https://codecov.io/github/tpapp/LogDensityProblemsAD.jl/branch/main/graph/badge.svg?token=1MPzucXSzG)](https://codecov.io/github/tpapp/LogDensityProblemsAD.jl)
 
 <!-- Documentation -- uncomment or delete as needed -->
 <!--
