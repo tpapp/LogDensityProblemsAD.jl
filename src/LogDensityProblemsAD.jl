@@ -84,6 +84,7 @@ if !EXTENSIONS_SUPPORTED
 end
 @static if !EXTENSIONS_SUPPORTED
     function __init__()
+        @require FiniteDifferences="26cc04aa-876d-5657-8c51-4c34ba976000" include("../ext/LogDensityProblemsADFiniteDifferencesExt.jl")
         @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" begin
             include("../ext/LogDensityProblemsADForwardDiffExt.jl")
             @require BenchmarkTools="6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf" begin

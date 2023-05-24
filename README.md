@@ -43,5 +43,7 @@ x = zeros(LogDensityProblems.dimension(ℓ)) # ℓ is your log density
 
 4. [ReverseDiff.jl](https://github.com/JuliaDiff/ReverseDiff.jl)
     Can be very performant with tape compilation, but make sure that your code does not branch changing the result (ie if you use tape compilation, check your derivatives).
+    
+5. [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl) Finite differences are very robust, with a small numerical error, but usually not fast enough to practically replace AD on nontrivial problems. The backend in this package is mainly intended for checking and debugging results from other backends; but note that in most cases ForwardDiff is faster and more accurate.
 
 PRs for other AD frameworks are welcome, even if they are WIP.

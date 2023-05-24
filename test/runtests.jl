@@ -2,7 +2,7 @@ using LogDensityProblemsAD
 using Test, Random
 import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
-import ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
+import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
@@ -27,9 +27,9 @@ Random.seed!(1)
 
 Compare log denfields and types, for unit testing.
 """
-≅(::Any, ::Any, atol = 0) = false
+≅(::Any, ::Any; atol = 0) = false
 
-function ≅(a::Real, b::Real, atol = 0)
+function ≅(a::Real, b::Real; atol = 0)
     if isnan(a)
         isnan(b)
     elseif isinf(a)
@@ -39,8 +39,8 @@ function ≅(a::Real, b::Real, atol = 0)
     end
 end
 
-function ≅(a::Tuple{Real,Any}, b::Tuple{Real,Any}, atol = 0)
-    ≅(first(a), first(b), atol) || return false
+function ≅(a::Tuple{Real,Any}, b::Tuple{Real,Any}; atol = 0)
+    ≅(first(a), first(b); atol = atol) || return false
     !isfinite(first(a)) || isapprox(last(a), last(b); atol = atol, rtol = 0)
 end
 
@@ -204,6 +204,19 @@ end
     @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode=EnzymeTestMode())
     ∇ℓ = @test_logs (:info, "keyword argument `shadow` is ignored in reverse mode") ADgradient(:Enzyme, ℓ; shadow = (1,))
     @test ∇ℓ.shadow === nothing
+end
+
+@testset "AD via FiniteDifferences" begin
+    ℓ = TestLogDensity(test_logdensity1)
+    ∇ℓ = ADgradient(:FiniteDifferences, ℓ)
+    @test contains(repr(∇ℓ), "FiniteDifferences AD wrapper for " * repr(ℓ))
+    @test dimension(∇ℓ) == 3
+    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
+    for _ in 1:100
+        x = randn(3)
+        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
+        @test ≅(logdensity_and_gradient(∇ℓ, x), (test_logdensity1(x), test_gradient(x)); atol = 1e-5)
+    end
 end
 
 @testset "ADgradient missing method" begin
