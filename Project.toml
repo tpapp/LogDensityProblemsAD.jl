@@ -12,6 +12,7 @@ SimpleUnPack = "ce78b400-467f-4804-87d8-8f486da07d0a"
 [weakdeps]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
 Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
@@ -19,6 +20,7 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extensions]
 LogDensityProblemsADEnzymeExt = "Enzyme"
+LogDensityProblemsADFiniteDifferencesExt = "FiniteDifferences"
 LogDensityProblemsADForwardDiffBenchmarkToolsExt = ["BenchmarkTools", "ForwardDiff"]
 LogDensityProblemsADForwardDiffExt = "ForwardDiff"
 LogDensityProblemsADReverseDiffExt = "ReverseDiff"
@@ -26,17 +28,19 @@ LogDensityProblemsADTrackerExt = "Tracker"
 LogDensityProblemsADZygoteExt = "Zygote"
 
 [compat]
-julia = "1.6"
 DocStringExtensions = "0.8, 0.9"
 Enzyme = "0.11"
+FiniteDifferences = "0.12"
 LogDensityProblems = "1, 2"
 Requires = "0.5, 1"
 SimpleUnPack = "1"
+julia = "1.6"
 
 [extras]
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 ComponentArrays = "b0b7db55-cfe3-40fc-9ded-d10e2dbeff66"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
 ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
 Random = "9a3f8284-a2c9-5f02-9a11-845980a1fd5c"
 ReverseDiff = "37e2e3b7-166d-5795-8a7a-e32c996b4267"
@@ -45,4 +49,4 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
-test = ["BenchmarkTools", "ComponentArrays", "Enzyme", "ForwardDiff", "Random", "ReverseDiff", "Test", "Tracker", "Zygote"]
+test = ["BenchmarkTools", "ComponentArrays", "Enzyme", "FiniteDifferences", "ForwardDiff", "Random", "ReverseDiff", "Test", "Tracker", "Zygote"]
