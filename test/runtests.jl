@@ -3,10 +3,11 @@ using Test, Random
 import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
 import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
+import ADTypes # load support for AD types with options
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
-struct EnzymeTestMode <: Enzyme.Mode end
+struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI} end
 
 ####
 #### test setup and utilities
@@ -72,11 +73,18 @@ dimension(::TestLogDensity2) = 20
         @test repr(∇ℓ) == "ReverseDiff AD wrapper for " * repr(ℓ) * " (no compiled tape)"
     end
 
+    # ADTypes support
+    @test ADgradient(ADTypes.AutoReverseDiff(), ℓ) === ∇ℓ_default
+    @test ADgradient(ADTypes.AutoReverseDiff(; compile = false), ℓ) === ∇ℓ_nocompile
+
     ∇ℓ_compile = ADgradient(:ReverseDiff, ℓ; compile=Val(true))
     ∇ℓ_compile_x = ADgradient(:ReverseDiff, ℓ; compile=Val(true), x=rand(3))
     for ∇ℓ in (∇ℓ_compile, ∇ℓ_compile_x)
         @test repr(∇ℓ) == "ReverseDiff AD wrapper for " * repr(ℓ) * " (compiled tape)"
     end
+
+    # ADTypes support
+    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = true), ℓ)) === typeof(∇ℓ_compile)
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -116,6 +124,9 @@ end
             (test_logdensity(x), test_gradient(x))
     end
 
+    # ADTypes support
+    @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
+
     # preallocated gradient config
     x = randexp(Float32, 3)
     ∇ℓ = ADgradient(:ForwardDiff, ℓ; x = x)
@@ -127,6 +138,9 @@ end
 
     # chunk size as integers
     @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
+
+    # ADTypes support
+    @test ADgradient(ADTypes.AutoForwardDiff(3), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3)
 end
 
 @testset "component vectors" begin
@@ -160,6 +174,9 @@ end
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
         @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅ (test_logdensity(x), test_gradient(x))
    end
+
+   # ADTypes support
+   @test ADgradient(ADTypes.AutoTracker(), ℓ) === ∇ℓ
 end
 
 @testset "AD via Zygote" begin
@@ -173,6 +190,9 @@ end
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
         @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x))
     end
+
+   # ADTypes support
+   @test ADgradient(ADTypes.AutoZygote(), ℓ) === ∇ℓ
 end
 
 @testset "AD via Enzyme" begin
@@ -181,6 +201,9 @@ end
     ∇ℓ_reverse = ADgradient(:Enzyme, ℓ)
     @test ∇ℓ_reverse === ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse)
     @test repr(∇ℓ_reverse) == "Enzyme AD wrapper for " * repr(ℓ) * " with reverse mode"
+
+    # ADTypes support
+    @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
 
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     ∇ℓ_forward_shadow = ADgradient(:Enzyme, ℓ;
