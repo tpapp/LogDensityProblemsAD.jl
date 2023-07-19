@@ -123,6 +123,11 @@ end
     @test repr(∇ℓ) == "ForwardDiff AD wrapper for " * repr(ℓ) * ", w/ chunk size 3"
     @test dimension(∇ℓ) == 3
     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
+
+
+    # ADTypes support
+    @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
+
     for _ in 1:100
         x = randn(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
@@ -134,16 +139,13 @@ end
     for T in (Float32, Float64)
         x = randexp(T, 3)
         for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
-            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag)
+            local ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag)
             @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
             @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
             @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
                 (test_logdensity(x), test_gradient(x))
         end
     end
-
-    # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
 
     # preallocated gradient config
     x = randexp(Float32, 3)
