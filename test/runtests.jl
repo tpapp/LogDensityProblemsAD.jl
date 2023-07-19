@@ -64,6 +64,12 @@ struct TestLogDensity2 end
 logdensity(::TestLogDensity2, x) = -sum(abs2, x)
 dimension(::TestLogDensity2) = 20
 
+# Tag type for ForwardDiff
+struct TestTag end
+
+# Allow tag type in gradient etc. calls of the log density function
+ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
+
 @testset "AD via ReverseDiff" begin
     ℓ = TestLogDensity()
 
@@ -124,6 +130,18 @@ end
             (test_logdensity(x), test_gradient(x))
     end
 
+    # custom tag
+    for T in (Float32, Float64)
+        x = randexp(T, 3)
+        for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
+            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag)
+            @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
+            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
+            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+                (test_logdensity(x), test_gradient(x))
+        end
+    end
+
     # ADTypes support
     @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
 
@@ -135,6 +153,19 @@ end
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
         (test_logdensity(x), test_gradient(x))
     @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
+
+    # custom tag + preallocated gradient config
+    for T in (Float32, Float64)
+        x = randexp(T, 3)
+        for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
+            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag, x = x)
+            @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
+            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
+            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+                (test_logdensity(x), test_gradient(x))
+            @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
+        end
+    end
 
     # chunk size as integers
     @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
