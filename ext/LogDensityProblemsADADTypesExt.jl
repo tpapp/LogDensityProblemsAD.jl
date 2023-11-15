@@ -28,12 +28,12 @@ function LogDensityProblemsAD.ADgradient(::ADTypes.AutoEnzyme, ℓ)
     return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
 end
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoForwardDiff{C}, ℓ) where {C}
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ) where {C}
     if C === nothing
         # Use default chunk size
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ)
+        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; tag = ad.tag)
     else
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C)
+        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C, tag = ad.tag)
     end
 end
 
