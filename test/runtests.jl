@@ -173,7 +173,8 @@ end
     @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
 
     # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(3), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3)
+    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3)
+    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3, tag = TestTag()), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3, tag = TestTag())
 end
 
 @testset "component vectors" begin
