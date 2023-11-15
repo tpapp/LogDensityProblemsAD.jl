@@ -33,12 +33,12 @@ function LogDensityProblemsAD.ADgradient(::ADTypes.AutoForwardDiff{C}, ℓ) wher
         # Use default chunk size
         return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ)
     else
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C)
+        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk=C)
     end
 end
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff, ℓ)
-    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(ad.compile))
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile=Val(ad.compile), x=x)
 end
 
 function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ)
