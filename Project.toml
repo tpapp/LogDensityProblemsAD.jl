@@ -32,7 +32,7 @@ LogDensityProblemsADZygoteExt = "Zygote"
 [compat]
 ADTypes = "0.1.7, 0.2"
 DocStringExtensions = "0.8, 0.9"
-Enzyme = "0.11"
+Enzyme = "0.11, 0.12"
 FiniteDifferences = "0.12"
 LogDensityProblems = "1, 2"
 Requires = "0.5, 1"
