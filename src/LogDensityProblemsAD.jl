@@ -3,100 +3,87 @@ Automatic differentiation backends for LogDensityProblems.
 """
 module LogDensityProblemsAD
 
+using ADTypes
+import DifferentiationInterface as DI
+using DocStringExtensions: SIGNATURES
+using LogDensityProblems:
+    LogDensityProblems,
+    LogDensityOrder,
+    logdensity,
+    logdensity_and_gradient,
+    capabilities,
+    dimension
+
 export ADgradient
 
-using DocStringExtensions: SIGNATURES
-import LogDensityProblems: logdensity, logdensity_and_gradient, capabilities, dimension
-using LogDensityProblems: LogDensityOrder
+struct ADgradient{B<:AbstractADType,L,E<:Union{DI.GradientExtras,Nothing}}
+    backend::B
+    ℓ::L
+    extras::E
+end
 
-import SimpleUnPack
+LogDensityProblems.logdensity(g::ADgradient, x::AbstractVector) = logdensity(g.ℓ, x)
+LogDensityProblems.capabilities(::Type{<:ADgradient}) = LogDensityOrder{1}()
+LogDensityProblems.dimension(g::ADgradient) = dimension(g.ℓ)
+Base.parent(g::ADgradient) = g.ℓ
+Base.copy(g::ADgradient) = deepcopy(g)
 
-#####
-##### AD wrappers --- interface and generic code
-#####
+function ADgradient(backend::AbstractADType, ℓ)
+    return ADgradient(backend, ℓ, nothing)
+end
 
-"""
-An abstract type that wraps another log density for calculating the gradient via AD.
+function ADgradient(backend::AbstractADType, ℓ, x::AbstractVector)
+    extras = DI.prepare_gradient(Base.Fix1(logdensity, ℓ), backend, x)
+    return ADgradient(backend, ℓ, extras)
+end
 
-Automatically defines the methods `capabilities`, `dimension`, and `logdensity` forwarding
-to the field `ℓ`, subtypes should define a [`logdensity_and_gradientent`](@ref).
+function LogDensityProblems.logdensity_and_gradient(
+    ∇ℓ::ADgradient{<:Any,<:Any,Nothing},
+    x::AbstractVector,
+)
+    (; ℓ, backend) = ∇ℓ
+    return DI.value_and_gradient(Base.Fix1(logdensity, ℓ), backend, x)
+end
 
-This is an implementation helper, not part of the API.
-"""
-abstract type ADGradientWrapper end
+function LogDensityProblems.logdensity_and_gradient(
+    ∇ℓ::ADgradient{<:Any,<:Any,<:DI.GradientExtras},
+    x::AbstractVector,
+)
+    (; ℓ, backend, extras) = ∇ℓ
+    return DI.value_and_gradient(Base.Fix1(logdensity, ℓ), backend, x, extras)
+end
 
-logdensity(ℓ::ADGradientWrapper, x::AbstractVector) = logdensity(ℓ.ℓ, x)
+## Translation from symbols
 
-capabilities(::Type{<:ADGradientWrapper}) = LogDensityOrder{1}()
+function ADgradient(kind::Symbol, ℓ; kwargs...)
+    return ADgradient(Val{kind}(), ℓ; kwargs...)
+end
 
-dimension(ℓ::ADGradientWrapper) = dimension(ℓ.ℓ)
-
-Base.parent(ℓ::ADGradientWrapper) = ℓ.ℓ
-
-Base.copy(x::ADGradientWrapper) = x # no-op, except for ForwardDiff
-
-"""
-$(SIGNATURES)
-
-Wrap `P` using automatic differentiation to obtain a gradient.
-
-`kind` is usually a `Val` type with a symbol that refers to a package, for example
-```julia
-ADgradient(Val(:ForwardDiff), P)
-ADgradient(Val(:ReverseDiff), P)
-ADgradient(Val(:Zygote), P)
-```
-Some methods may be loaded only conditionally after the relevant package is loaded (eg
-`using Zygote`).
-
-The symbol can also be used directly as eg
-
-```julia
-ADgradient(:ForwardDiff, P)
-```
-
-and should mostly be equivalent if the compiler manages to fold the constant.
-
-The function `parent` can be used to retrieve the original argument.
-
-!!! note
-    With the default options, automatic differentiation preserves thread-safety. See
-    exceptions and workarounds in the docstring for each backend.
-"""
-ADgradient(kind::Symbol, P; kwargs...) = ADgradient(Val{kind}(), P; kwargs...)
-
-function ADgradient(v::Val{kind}, P; kwargs...) where kind
+function ADgradient(v::Val{kind}, ℓ; kwargs...) where {kind}
     @info "Don't know how to AD with $(kind), consider `import $(kind)` if there is such a package."
-    throw(MethodError(ADgradient, (v, P)))
+    throw(MethodError(ADgradient, (v, ℓ)))
 end
 
-#####
-##### Empty method definitions for easier discoverability and backward compatibility
-#####
-function benchmark_ForwardDiff_chunks end
-function heuristic_chunks end
-
-# Backward compatible AD wrappers on Julia versions that do not support extensions
-# TODO: Replace with proper version
-const EXTENSIONS_SUPPORTED = isdefined(Base, :get_extension)
-if !EXTENSIONS_SUPPORTED
-    using Requires: @require
-end
-@static if !EXTENSIONS_SUPPORTED
-    function __init__()
-        @require ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b" include("../ext/LogDensityProblemsADADTypesExt.jl")
-        @require FiniteDifferences="26cc04aa-876d-5657-8c51-4c34ba976000" include("../ext/LogDensityProblemsADFiniteDifferencesExt.jl")
-        @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" begin
-            include("../ext/LogDensityProblemsADForwardDiffExt.jl")
-            @require BenchmarkTools="6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf" begin
-                include("../ext/LogDensityProblemsADForwardDiffBenchmarkToolsExt.jl")
-            end
-        end
-        @require Tracker="9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("../ext/LogDensityProblemsADTrackerExt.jl")
-        @require Zygote="e88e6eb3-aa80-5325-afca-941959d7151f" include("../ext/LogDensityProblemsADZygoteExt.jl")
-        @require ReverseDiff="37e2e3b7-166d-5795-8a7a-e32c996b4267" include("../ext/LogDensityProblemsADReverseDiffExt.jl")
-        @require Enzyme="7da242da-08ed-463a-9acd-ee780be4f1d9" include("../ext/LogDensityProblemsADEnzymeExt.jl")
+function ADgradient(
+    ::Val{:ReverseDiff},
+    ℓ;
+    compile::Val{comp} = Val(false),
+    x::Union{AbstractVector,Nothing} = nothing,
+) where {comp}
+    backend = AutoReverseDiff(; compile = comp)
+    if isnothing(x)
+        return ADgradient(backend, ℓ)
+    else
+        return ADgradient(backend, ℓ, x)
     end
+end
+
+function ADgradient(::Val{:Tracker}, ℓ)
+    return ADgradient(AutoTracker(), ℓ)
+end
+
+function ADgradient(::Val{:Zygote}, ℓ)
+    return ADgradient(AutoZygote(), ℓ)
 end
 
 end # module
