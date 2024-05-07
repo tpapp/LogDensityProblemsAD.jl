@@ -1,14 +1,18 @@
 module LogDensityProblemsADEnzymeExt
 
 using ADTypes: AutoEnzyme
-using LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, logdensity
-using Enzyme: Enzyme
+using Enzyme: Reverse
+if isdefined(Base, :get_extension)
+    using LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, logdensity
+else
+    using ..LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, logdensity
+end
 
 function LogDensityProblemsAD.ADgradient(
     ::Val{:Enzyme},
     ℓ;
-    mode = Enzyme.Reverse,
-    shadow = nothing,
+    mode=Reverse,
+    shadow=nothing,
 )
     if !isnothing(shadow)
         @warn "keyword argument `shadow` is now ignored"

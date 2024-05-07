@@ -13,7 +13,10 @@ using LogDensityProblems:
     logdensity_and_gradient,
     capabilities,
     dimension
-using PackageExtensionCompat: @require_extensions
+
+if !isdefined(Base, :get_extension)
+    using Requires: @require
+end
 
 export ADgradient
 
@@ -71,10 +74,10 @@ end
 function ADgradient(
     ::Val{:ReverseDiff},
     ℓ;
-    compile::Val{comp} = Val(false),
-    x::Union{AbstractVector,Nothing} = nothing,
+    compile::Val{comp}=Val(false),
+    x::Union{AbstractVector,Nothing}=nothing,
 ) where {comp}
-    backend = AutoReverseDiff(; compile = comp)
+    backend = AutoReverseDiff(; compile=comp)
     if isnothing(x)
         return ADgradient(backend, ℓ)
     else
@@ -92,8 +95,18 @@ end
 
 ## Initialization
 
-function __init__()
-    @require_extensions
+@static if !isdefined(Base, :get_extension)
+    function __init__()
+        @require Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9" begin
+            include("../ext/LogDensityProblemsADEnzymeExt.jl")
+        end
+        @require FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000" begin
+            include("../ext/LogDensityProblemsADFiniteDifferencesExt.jl")
+        end
+        @require ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210" begin
+            include("../ext/LogDensityProblemsADForwardDiffExt.jl")
+        end
+    end
 end
 
 end # module
