@@ -71,10 +71,10 @@ end
 function ADgradient(
     ::Val{:ReverseDiff},
     ℓ;
-    compile::Val{comp}=Val(false),
-    x::Union{AbstractVector,Nothing}=nothing,
+    compile::Val{comp} = Val(false),
+    x::Union{AbstractVector,Nothing} = nothing,
 ) where {comp}
-    backend = AutoReverseDiff(; compile=comp)
+    backend = AutoReverseDiff(; compile = comp)
     if isnothing(x)
         return ADgradient(backend, ℓ)
     else

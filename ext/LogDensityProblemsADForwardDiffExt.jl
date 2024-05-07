@@ -12,9 +12,9 @@ _default_chunk(ℓ) = _get_chunksize(dimension(ℓ))
 function LogDensityProblemsAD.ADgradient(
     ::Val{:ForwardDiff},
     ℓ;
-    chunk::Union{Integer,Chunk}=_default_chunk(ℓ),
-    tag=nothing,
-    x::Union{Nothing,AbstractVector}=nothing,
+    chunk::Union{Integer,Chunk} = _default_chunk(ℓ),
+    tag = nothing,
+    x::Union{Nothing,AbstractVector} = nothing,
 )
     chunksize = _get_chunksize(chunk)
     backend = AutoForwardDiff{chunksize,typeof(tag)}(tag)

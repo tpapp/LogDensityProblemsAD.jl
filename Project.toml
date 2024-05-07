@@ -10,6 +10,16 @@ DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 PackageExtensionCompat = "65ce6f38-6b18-4e1d-a461-8949797d7930"
 
+[weakdeps]
+Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
+FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
+ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
+
+[extensions]
+LogDensityProblemsADEnzymeExt = "Enzyme"
+LogDensityProblemsADFiniteDifferencesExt = "FiniteDifferences"
+LogDensityProblemsADForwardDiffExt = "ForwardDiff"
+
 [compat]
 ADTypes = "1.1.0"
 DifferentiationInterface = "0.3.4"
@@ -17,11 +27,6 @@ DocStringExtensions = "0.8, 0.9"
 LogDensityProblems = "1, 2"
 PackageExtensionCompat = "1.0"
 julia = "1.6"
-
-[extensions]
-LogDensityProblemsADEnzymeExt = "Enzyme"
-LogDensityProblemsADFiniteDifferencesExt = "FiniteDifferences"
-LogDensityProblemsADForwardDiffExt = "ForwardDiff"
 
 [extras]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
@@ -38,8 +43,3 @@ Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [targets]
 test = ["ADTypes", "BenchmarkTools", "ComponentArrays", "Enzyme", "FiniteDifferences", "ForwardDiff", "Random", "ReverseDiff", "Test", "Tracker", "Zygote"]
-
-[weakdeps]
-Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
-FiniteDifferences = "26cc04aa-876d-5657-8c51-4c34ba976000"
-ForwardDiff = "f6369f11-7733-5829-9624-2563aa707210"
