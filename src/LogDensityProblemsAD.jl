@@ -13,47 +13,51 @@ using LogDensityProblems:
     logdensity_and_gradient,
     capabilities,
     dimension
+using PackageExtensionCompat: @require_extensions
 
 export ADgradient
 
-struct ADgradient{B<:AbstractADType,L,E<:Union{DI.GradientExtras,Nothing}}
+## Internal type
+
+struct ADgradientDI{B<:AbstractADType,L,E<:Union{DI.GradientExtras,Nothing}}
     backend::B
     ℓ::L
     extras::E
 end
 
-LogDensityProblems.logdensity(g::ADgradient, x::AbstractVector) = logdensity(g.ℓ, x)
-LogDensityProblems.capabilities(::Type{<:ADgradient}) = LogDensityOrder{1}()
-LogDensityProblems.dimension(g::ADgradient) = dimension(g.ℓ)
-Base.parent(g::ADgradient) = g.ℓ
-Base.copy(g::ADgradient) = deepcopy(g)
+LogDensityProblems.logdensity(∇ℓ::ADgradientDI, x::AbstractVector) = logdensity(∇ℓ.ℓ, x)
+LogDensityProblems.capabilities(::Type{<:ADgradientDI}) = LogDensityOrder{1}()
+LogDensityProblems.dimension(∇ℓ::ADgradientDI) = dimension(∇ℓ.ℓ)
+Base.parent(∇ℓ::ADgradientDI) = ∇ℓ.ℓ
+Base.copy(∇ℓ::ADgradientDI) = deepcopy(∇ℓ)
+
+
+function LogDensityProblems.logdensity_and_gradient(
+    ∇ℓ::ADgradientDI{<:Any,<:Any,Nothing},
+    x::AbstractVector,
+)
+    return DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x)
+end
+
+function LogDensityProblems.logdensity_and_gradient(
+    ∇ℓ::ADgradientDI{<:Any,<:Any,<:DI.GradientExtras},
+    x::AbstractVector,
+)
+    return DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x, ∇ℓ.extras)
+end
+
+## Constructor from ADTypes
 
 function ADgradient(backend::AbstractADType, ℓ)
-    return ADgradient(backend, ℓ, nothing)
+    return ADgradientDI(backend, ℓ, nothing)
 end
 
 function ADgradient(backend::AbstractADType, ℓ, x::AbstractVector)
     extras = DI.prepare_gradient(Base.Fix1(logdensity, ℓ), backend, x)
-    return ADgradient(backend, ℓ, extras)
+    return ADgradientDI(backend, ℓ, extras)
 end
 
-function LogDensityProblems.logdensity_and_gradient(
-    ∇ℓ::ADgradient{<:Any,<:Any,Nothing},
-    x::AbstractVector,
-)
-    (; ℓ, backend) = ∇ℓ
-    return DI.value_and_gradient(Base.Fix1(logdensity, ℓ), backend, x)
-end
-
-function LogDensityProblems.logdensity_and_gradient(
-    ∇ℓ::ADgradient{<:Any,<:Any,<:DI.GradientExtras},
-    x::AbstractVector,
-)
-    (; ℓ, backend, extras) = ∇ℓ
-    return DI.value_and_gradient(Base.Fix1(logdensity, ℓ), backend, x, extras)
-end
-
-## Translation from symbols
+## Constructor from symbols
 
 function ADgradient(kind::Symbol, ℓ; kwargs...)
     return ADgradient(Val{kind}(), ℓ; kwargs...)
@@ -67,10 +71,10 @@ end
 function ADgradient(
     ::Val{:ReverseDiff},
     ℓ;
-    compile::Val{comp} = Val(false),
-    x::Union{AbstractVector,Nothing} = nothing,
+    compile::Val{comp}=Val(false),
+    x::Union{AbstractVector,Nothing}=nothing,
 ) where {comp}
-    backend = AutoReverseDiff(; compile = comp)
+    backend = AutoReverseDiff(; compile=comp)
     if isnothing(x)
         return ADgradient(backend, ℓ)
     else
@@ -84,6 +88,12 @@ end
 
 function ADgradient(::Val{:Zygote}, ℓ)
     return ADgradient(AutoZygote(), ℓ)
+end
+
+## Initialization
+
+function __init__()
+    @require_extensions
 end
 
 end # module
