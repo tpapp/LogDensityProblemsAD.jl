@@ -199,7 +199,7 @@ end
     for _ = 1:100
         x = randn(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-        @test_broken @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+        @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
                      (test_logdensity(x), test_gradient(x))
     end
 
