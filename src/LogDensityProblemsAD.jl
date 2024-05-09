@@ -34,19 +34,30 @@ LogDensityProblems.dimension(∇ℓ::ADgradientDI) = dimension(∇ℓ.ℓ)
 Base.parent(∇ℓ::ADgradientDI) = ∇ℓ.ℓ
 Base.copy(∇ℓ::ADgradientDI) = deepcopy(∇ℓ)
 
-
 function LogDensityProblems.logdensity_and_gradient(
-    ∇ℓ::ADgradientDI{<:Any,<:Any,Nothing},
-    x::AbstractVector,
-)
-    return DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x)
+    ∇ℓ::ADgradientDI{B,<:Any,Nothing},
+    x::AbstractVector{T},
+) where {B,T}
+    y, g = DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x)
+    if B <: AutoTracker
+        R = promote_type(T, Float64)
+        return convert(R, y)::R, convert(Vector{R}, g)::Vector{R}
+    else
+        return y, g
+    end
 end
 
 function LogDensityProblems.logdensity_and_gradient(
-    ∇ℓ::ADgradientDI{<:Any,<:Any,<:DI.GradientExtras},
-    x::AbstractVector,
-)
-    return DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x, ∇ℓ.extras)
+    ∇ℓ::ADgradientDI{B,<:Any,<:DI.GradientExtras},
+    x::AbstractVector{T},
+) where {B,T}
+    y, g = DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x, ∇ℓ.extras)
+    if B <: AutoTracker
+        R = promote_type(T, Float64)
+        return convert(R, y)::R, convert(Vector{R}, g)::Vector{R}
+    else
+        return y, g
+    end
 end
 
 ## Constructor from ADTypes

@@ -28,9 +28,9 @@ Random.seed!(1)
 
 Compare log denfields and types, for unit testing.
 """
-≅(::Any, ::Any; atol = 0) = false
+≅(::Any, ::Any; atol=0) = false
 
-function ≅(a::Real, b::Real; atol = 0)
+function ≅(a::Real, b::Real; atol=0)
     if isnan(a)
         isnan(b)
     elseif isinf(a)
@@ -40,9 +40,9 @@ function ≅(a::Real, b::Real; atol = 0)
     end
 end
 
-function ≅(a::Tuple{Real,Any}, b::Tuple{Real,Any}; atol = 0)
-    ≅(first(a), first(b); atol = atol) || return false
-    !isfinite(first(a)) || isapprox(last(a), last(b); atol = atol, rtol = 0)
+function ≅(a::Tuple{Real,Any}, b::Tuple{Real,Any}; atol=0)
+    ≅(first(a), first(b); atol=atol) || return false
+    !isfinite(first(a)) || isapprox(last(a), last(b); atol=atol, rtol=0)
 end
 
 ###
@@ -79,17 +79,17 @@ ForwardDiff.checktag(
     ℓ = TestLogDensity()
 
     ∇ℓ_default = ADgradient(:ReverseDiff, ℓ)
-    ∇ℓ_nocompile = ADgradient(:ReverseDiff, ℓ; compile = Val(false))
+    ∇ℓ_nocompile = ADgradient(:ReverseDiff, ℓ; compile=Val(false))
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoReverseDiff(), ℓ) === ∇ℓ_default
-    @test ADgradient(ADTypes.AutoReverseDiff(; compile = false), ℓ) === ∇ℓ_nocompile
+    @test ADgradient(ADTypes.AutoReverseDiff(; compile=false), ℓ) === ∇ℓ_nocompile
 
-    ∇ℓ_compile = ADgradient(:ReverseDiff, ℓ; compile = Val(true))
-    ∇ℓ_compile_x = ADgradient(:ReverseDiff, ℓ; compile = Val(true), x = rand(3))
+    ∇ℓ_compile = ADgradient(:ReverseDiff, ℓ; compile=Val(true))
+    ∇ℓ_compile_x = ADgradient(:ReverseDiff, ℓ; compile=Val(true), x=randexp(3))
 
     # ADTypes support
-    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = true), ℓ)) ===
+    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile=true), ℓ)) ===
           typeof(∇ℓ_compile)
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
@@ -97,7 +97,7 @@ ForwardDiff.checktag(
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
 
         for _ = 1:100
-            x = rand(3)
+            x = randexp(3)
             @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
             @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
                   (test_logdensity(x), test_gradient(x))
@@ -124,10 +124,10 @@ end
     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
 
     # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = dimension(ℓ)), ℓ) === ∇ℓ
+    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize=dimension(ℓ)), ℓ) === ∇ℓ
 
     for _ = 1:100
-        x = randn(3)
+        x = randexp(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
         @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
               (test_logdensity(x), test_gradient(x))
@@ -137,7 +137,7 @@ end
     for T in (Float32, Float64)
         x = randexp(T, 3)
         for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
-            local ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag)
+            local ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag=tag)
             @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
             @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
             @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
@@ -147,7 +147,7 @@ end
 
     # preallocated gradient config
     x = randexp(Float32, 3)
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ; x = x)
+    ∇ℓ = ADgradient(:ForwardDiff, ℓ; x=x)
     @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === Float32
     @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅ (test_logdensity(x), test_gradient(x))
@@ -157,7 +157,7 @@ end
     for T in (Float32, Float64)
         x = randexp(T, 3)
         for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
-            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag, x = x)
+            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag=tag, x=x)
             @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
             @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
             @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
@@ -167,13 +167,13 @@ end
     end
 
     # chunk size as integers
-    @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
+    @test ADgradient(:ForwardDiff, ℓ; chunk=3) isa eltype(∇ℓ)
 
     # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3), ℓ) ===
-          ADgradient(:ForwardDiff, ℓ; chunk = 3)
-    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3, tag = TestTag()), ℓ) ===
-          ADgradient(:ForwardDiff, ℓ; chunk = 3, tag = TestTag())
+    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize=3), ℓ) ===
+          ADgradient(:ForwardDiff, ℓ; chunk=3)
+    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize=3, tag=TestTag()), ℓ) ===
+          ADgradient(:ForwardDiff, ℓ; chunk=3, tag=TestTag())
 end
 
 @testset "component vectors" begin
@@ -181,11 +181,11 @@ end
     # cf https://github.com/tpapp/LogDensityProblemsAD.jl/pull/3
     ℓ = TestLogDensity()
     ∇ℓ = ADgradient(:ForwardDiff, ℓ)
-    x = zeros(3)
-    y = ComponentVector(x = x)
+    x = randexp(3)
+    y = ComponentVector(x=x)
     @test @inferred(logdensity(∇ℓ, y)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ, y)) ≅ (test_logdensity(x), test_gradient(x))
-    ∇ℓ2 = ADgradient(:ForwardDiff, ℓ; x = y) # preallocate GradientConfig
+    ∇ℓ2 = ADgradient(:ForwardDiff, ℓ; x=y) # preallocate GradientConfig
     @test @inferred(logdensity(∇ℓ2, y)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ2, y)) ≅
           (test_logdensity(x), test_gradient(x))
@@ -197,10 +197,10 @@ end
     @test dimension(∇ℓ) == 3
     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
     for _ = 1:100
-        x = randn(3)
+        x = randexp(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
         @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                     (test_logdensity(x), test_gradient(x))
+              (test_logdensity(x), test_gradient(x))
     end
 
     # ADTypes support
@@ -213,7 +213,7 @@ end;
     @test dimension(∇ℓ) == 3
     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
     for _ = 1:100
-        x = randn(3)
+        x = randexp(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
         @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x))
     end
@@ -226,24 +226,24 @@ end
     ℓ = TestLogDensity(test_logdensity1)
 
     ∇ℓ_reverse = ADgradient(:Enzyme, ℓ)
-    @test ∇ℓ_reverse === ADgradient(:Enzyme, ℓ; mode = Enzyme.Reverse)
+    @test ∇ℓ_reverse === ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse)
 
     # ADTypes support
-    @test ADgradient(ADTypes.AutoEnzyme(; mode = Enzyme.Reverse), ℓ) === ∇ℓ_reverse
+    @test ADgradient(ADTypes.AutoEnzyme(; mode=Enzyme.Reverse), ℓ) === ∇ℓ_reverse
 
-    ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode = Enzyme.Forward)
+    ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     ∇ℓ_forward_shadow = ADgradient(
         :Enzyme,
         ℓ;
-        mode = Enzyme.Forward,
-        shadow = Enzyme.onehot(Vector{Float64}(undef, dimension(ℓ))),
+        mode=Enzyme.Forward,
+        shadow=Enzyme.onehot(Vector{Float64}(undef, dimension(ℓ))),
     )
 
     for ∇ℓ in (∇ℓ_reverse, ∇ℓ_forward, ∇ℓ_forward_shadow)
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ = 1:100
-            x = randn(3)
+            x = randexp(3)
             @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
             @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x))
         end
@@ -256,12 +256,12 @@ end
     @test dimension(∇ℓ) == 3
     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
     for _ = 1:100
-        x = randn(3)
+        x = randexp(3)
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
         @test ≅(
             logdensity_and_gradient(∇ℓ, x),
             (test_logdensity1(x), test_gradient(x));
-            atol = 1e-5,
+            atol=1e-5,
         )
     end
 end
