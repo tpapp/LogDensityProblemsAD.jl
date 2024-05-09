@@ -1,10 +1,12 @@
 module LogDensityProblemsADEnzymeExt
 
-using ADTypes: AutoEnzyme
-using Enzyme: Reverse
 if isdefined(Base, :get_extension)
+    using ADTypes: AutoEnzyme
+    using Enzyme: Reverse
     using LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, logdensity
 else
+    using ..ADTypes: AutoEnzyme
+    using ..Enzyme: Reverse
     using ..LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, logdensity
 end
 

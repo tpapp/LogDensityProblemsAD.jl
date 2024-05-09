@@ -1,10 +1,12 @@
 module LogDensityProblemsADForwardDiffExt
 
-using ADTypes: AutoForwardDiff
-using ForwardDiff: Chunk
 if isdefined(Base, :get_extension)
+    using ADTypes: AutoForwardDiff
+    using ForwardDiff: Chunk
     using LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, dimension
 else
+    using ..ADTypes: AutoForwardDiff
+    using ..ForwardDiff: Chunk
     using ..LogDensityProblemsAD: LogDensityProblemsAD, ADgradient, dimension
 end
 

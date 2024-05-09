@@ -1,10 +1,12 @@
 module LogDensityProblemsADFiniteDifferencesExt
 
-using ADTypes: AutoFiniteDifferences
-import FiniteDifferences: central_fdm
 if isdefined(Base, :get_extension)
+    using ADTypes: AutoFiniteDifferences
+    import FiniteDifferences: central_fdm
     using LogDensityProblemsAD: LogDensityProblemsAD, ADgradient
 else
+    using ..ADTypes: AutoFiniteDifferences
+    import ..FiniteDifferences: central_fdm
     using ..LogDensityProblemsAD: LogDensityProblemsAD, ADgradient
 end
 
