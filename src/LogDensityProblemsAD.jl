@@ -40,8 +40,9 @@ function LogDensityProblems.logdensity_and_gradient(
 ) where {B,T}
     y, g = DI.value_and_gradient(Base.Fix1(logdensity, ∇ℓ.ℓ), ∇ℓ.backend, x)
     if B <: AutoTracker
-        R = promote_type(T, Float64)
-        return convert(R, y)::R, convert(Vector{R}, g)::Vector{R}
+        R = Base.promote_op(logdensity, typeof(∇ℓ), typeof(x))
+        TF = float(T)
+        return convert(R, y)::R, convert(Vector{TF}, g)::Vector{TF}
     else
         return y, g
     end
