@@ -50,6 +50,12 @@ function ADgradient(::Val{:ReverseDiff}, ℓ;
     ReverseDiffLogDensity(ℓ, _compiledtape(ℓ, compile, x))
 end
 
+function ADgradient(::Val{:ReverseDiff}, ∇ℓ::ADGradientWrapper;
+                    compile::Union{Val{true},Val{false}}=Val(false),
+                    x::Union{Nothing,AbstractVector}=nothing)
+    ADgradient(Val{:ReverseDiff}, ∇ℓ.ℓ; compile=compile, x=x)
+end
+
 _compiledtape(ℓ, compile, x) = nothing
 _compiledtape(ℓ, ::Val{true}, ::Nothing) = _compiledtape(ℓ, Val(true), zeros(dimension(ℓ)))
 function _compiledtape(ℓ, ::Val{true}, x)
