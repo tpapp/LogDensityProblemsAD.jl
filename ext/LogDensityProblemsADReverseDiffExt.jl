@@ -49,11 +49,17 @@ function ADgradient(::Val{:ReverseDiff}, ℓ;
                     x::Union{Nothing,AbstractVector}=nothing)
     ReverseDiffLogDensity(ℓ, _compiledtape(ℓ, compile, x))
 end
-
 function ADgradient(::Val{:ReverseDiff}, ∇ℓ::ADGradientWrapper;
                     compile::Union{Val{true},Val{false}}=Val(false),
                     x::Union{Nothing,AbstractVector}=nothing)
     ADgradient(Val{:ReverseDiff}, ∇ℓ.ℓ; compile=compile, x=x)
+end
+
+function LogDensityProblemsAD.replace_ℓ(∇ℓ::ReverseDiffLogDensity{L,C}, new_ℓ) 
+    ReverseDiffLogDensity(new_ℓ, _compiledtape(new_ℓ, Val(true), nothing))
+end
+function LogDensityProblemsAD.replace_ℓ(∇ℓ::ReverseDiffLogDensity{L,Nothing}, new_ℓ) 
+    ReverseDiffLogDensity(new_ℓ, _compiledtape(new_ℓ, Val(false), nothing))
 end
 
 _compiledtape(ℓ, compile, x) = nothing
