@@ -3,7 +3,8 @@ Automatic differentiation backends for LogDensityProblems.
 """
 module LogDensityProblemsAD
 
-export ADgradient, replace_ℓ
+export ADgradient
+@compat public replace_ℓ
 
 using DocStringExtensions: SIGNATURES
 import LogDensityProblems: logdensity, logdensity_and_gradient, capabilities, dimension
@@ -40,10 +41,7 @@ $(SIGNATURES)
 
 Replace the log density in an `ADGradientWrapper`.
 """
-function replace_ℓ(∇ℓ::ADGradientWrapper, new_ℓ) 
-    @info "$(typeof(∇ℓ)) not supported for replacement"
-    throw(MethodError(replace_ℓ, (∇ℓ, new_ℓ)))
-end
+function replace_ℓ(∇ℓ::ADGradientWrapper, new_ℓ) end
 
 """
 $(SIGNATURES)
