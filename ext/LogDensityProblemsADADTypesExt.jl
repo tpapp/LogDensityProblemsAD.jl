@@ -37,8 +37,8 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ) wh
     end
 end
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff, ℓ)
-    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(ad.compile))
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ) where {T}
+    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T))
 end
 
 function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ)
