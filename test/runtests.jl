@@ -7,7 +7,7 @@ import ADTypes # load support for AD types with options
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
-struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI} end
+struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false} end
 
 ####
 #### test setup and utilities
