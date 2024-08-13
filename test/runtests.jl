@@ -7,7 +7,7 @@ import ADTypes # load support for AD types with options
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
-struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI} end
+struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false} end
 
 ####
 #### test setup and utilities
@@ -81,7 +81,7 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoReverseDiff(), ℓ) === ∇ℓ_default
-    @test ADgradient(ADTypes.AutoReverseDiff(; compile = false), ℓ) === ∇ℓ_nocompile
+    @test ADgradient(ADTypes.AutoReverseDiff(; compile = Val(false)), ℓ) === ∇ℓ_nocompile
 
     ∇ℓ_compile = ADgradient(:ReverseDiff, ℓ; compile=Val(true))
     ∇ℓ_compile_x = ADgradient(:ReverseDiff, ℓ; compile=Val(true), x=rand(3))
@@ -90,7 +90,7 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
     end
 
     # ADTypes support
-    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = true), ℓ)) === typeof(∇ℓ_compile)
+    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
