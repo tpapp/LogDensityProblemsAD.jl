@@ -5,14 +5,12 @@ module LogDensityProblemsADForwardDiffExt
 
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
-    using LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ForwardDiff
     import ForwardDiff: DiffResults
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
-    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..ForwardDiff
@@ -45,7 +43,7 @@ _ensure_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
 _default_chunk(ℓ) = _ensure_chunk(dimension(ℓ))
 
 function Base.copy(fℓ::ForwardDiffLogDensity{L,C,T,<:ForwardDiff.GradientConfig}) where {L,C,T}
-    @unpack ℓ, chunk, tag, gradient_config = fℓ
+    (; ℓ, chunk, tag, gradient_config) = fℓ
     ForwardDiffLogDensity(ℓ, chunk, tag, copy(gradient_config))
 end
 
@@ -109,7 +107,7 @@ function ADgradient(::Val{:ForwardDiff}, ℓ;
 end
 
 function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
-    @unpack ℓ, chunk, tag, gradient_config = fℓ
+    (; ℓ, chunk, tag, gradient_config) = fℓ
     buffer = _diffresults_buffer(x)
     ℓ′ = Base.Fix1(logdensity, ℓ)
     if gradient_config ≡ nothing

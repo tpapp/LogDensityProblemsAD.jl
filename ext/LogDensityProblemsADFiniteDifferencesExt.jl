@@ -5,13 +5,11 @@ module LogDensityProblemsADFiniteDifferencesExt
 
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import FiniteDifferences
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..FiniteDifferences
@@ -42,7 +40,7 @@ function Base.show(io::IO, ∇ℓ::FiniteDifferencesGradientLogDensity)
 end
 
 function logdensity_and_gradient(∇ℓ::FiniteDifferencesGradientLogDensity, x::AbstractVector)
-    @unpack ℓ, fdm = ∇ℓ
+    (; ℓ, fdm) = ∇ℓ
     y = logdensity(ℓ, x)
     ∇y = only(FiniteDifferences.grad(fdm, Base.Fix1(logdensity, ℓ), x))
     y, ∇y

@@ -5,13 +5,11 @@ module LogDensityProblemsADEnzymeExt
 
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import Enzyme
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..Enzyme
@@ -58,7 +56,7 @@ end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ForwardMode},
                                  x::AbstractVector)
-    @unpack ℓ, mode, shadow = ∇ℓ
+    (; ℓ, mode, shadow) = ∇ℓ
     _shadow = shadow === nothing ? Enzyme.onehot(x) : shadow
     y, ∂ℓ_∂x = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
                                Enzyme.Const(ℓ),
@@ -68,7 +66,7 @@ end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
                                  x::AbstractVector)
-    @unpack ℓ = ∇ℓ
+    (; ℓ) = ∇ℓ
     ∂ℓ_∂x = zero(x)
     _, y = Enzyme.autodiff(Enzyme.ReverseWithPrimal, logdensity, Enzyme.Active,
                            Enzyme.Const(ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x))
