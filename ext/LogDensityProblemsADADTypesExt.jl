@@ -37,8 +37,18 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ) wh
     end
 end
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ) where {T}
-    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T))
+# ADTypes 1.5 introduced a type parameter for `AutoReverseDiff` and deprecated the
+# `compile` field
+# Since Julia < 1.9 uses Requires which does not respect the ADTypes compat entry,
+# we keep the version for ADTypes < 1.5 as well
+@static if ADTypes.AutoReverseDiff isa UnionAll
+    function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ) where {T}
+        return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T))
+    end
+else
+    function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff, ℓ)
+        return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(ad.compile))
+    end
 end
 
 function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ)
