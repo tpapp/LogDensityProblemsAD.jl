@@ -9,8 +9,6 @@ using DocStringExtensions: SIGNATURES
 import LogDensityProblems: logdensity, logdensity_and_gradient, capabilities, dimension
 using LogDensityProblems: LogDensityOrder
 
-import SimpleUnPack
-
 #####
 ##### AD wrappers --- interface and generic code
 #####
@@ -75,28 +73,5 @@ end
 #####
 function benchmark_ForwardDiff_chunks end
 function heuristic_chunks end
-
-# Backward compatible AD wrappers on Julia versions that do not support extensions
-# TODO: Replace with proper version
-const EXTENSIONS_SUPPORTED = isdefined(Base, :get_extension)
-if !EXTENSIONS_SUPPORTED
-    using Requires: @require
-end
-@static if !EXTENSIONS_SUPPORTED
-    function __init__()
-        @require ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b" include("../ext/LogDensityProblemsADADTypesExt.jl")
-        @require FiniteDifferences="26cc04aa-876d-5657-8c51-4c34ba976000" include("../ext/LogDensityProblemsADFiniteDifferencesExt.jl")
-        @require ForwardDiff="f6369f11-7733-5829-9624-2563aa707210" begin
-            include("../ext/LogDensityProblemsADForwardDiffExt.jl")
-            @require BenchmarkTools="6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf" begin
-                include("../ext/LogDensityProblemsADForwardDiffBenchmarkToolsExt.jl")
-            end
-        end
-        @require Tracker="9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c" include("../ext/LogDensityProblemsADTrackerExt.jl")
-        @require Zygote="e88e6eb3-aa80-5325-afca-941959d7151f" include("../ext/LogDensityProblemsADZygoteExt.jl")
-        @require ReverseDiff="37e2e3b7-166d-5795-8a7a-e32c996b4267" include("../ext/LogDensityProblemsADReverseDiffExt.jl")
-        @require Enzyme="7da242da-08ed-463a-9acd-ee780be4f1d9" include("../ext/LogDensityProblemsADEnzymeExt.jl")
-    end
-end
 
 end # module

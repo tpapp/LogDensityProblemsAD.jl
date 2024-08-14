@@ -5,13 +5,11 @@ module LogDensityProblemsADZygoteExt
 
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using LogDensityProblemsAD.SimpleUnPack: @unpack
     
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
     import Zygote
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..Zygote
@@ -32,7 +30,7 @@ ADgradient(::Val{:Zygote}, ℓ) = ZygoteGradientLogDensity(ℓ)
 Base.show(io::IO, ∇ℓ::ZygoteGradientLogDensity) = print(io, "Zygote AD wrapper for ", ∇ℓ.ℓ)
 
 function logdensity_and_gradient(∇ℓ::ZygoteGradientLogDensity, x::AbstractVector)
-    @unpack ℓ = ∇ℓ
+    (; ℓ) = ∇ℓ
     y, back = Zygote.pullback(Base.Fix1(logdensity, ℓ), x)
     y, first(back(Zygote.sensitivity(y)))
 end

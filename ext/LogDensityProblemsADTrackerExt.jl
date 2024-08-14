@@ -5,13 +5,11 @@ module LogDensityProblemsADTrackerExt
 
 if isdefined(Base, :get_extension)
     using LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import Tracker
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-    using ..LogDensityProblemsAD.SimpleUnPack: @unpack
 
     import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import ..Tracker
@@ -34,7 +32,7 @@ ADgradient(::Val{:Tracker}, ℓ) = TrackerGradientLogDensity(ℓ)
 Base.show(io::IO, ∇ℓ::TrackerGradientLogDensity) = print(io, "Tracker AD wrapper for ", ∇ℓ.ℓ)
 
 function logdensity_and_gradient(∇ℓ::TrackerGradientLogDensity, x::AbstractVector{T}) where {T}
-    @unpack ℓ = ∇ℓ
+    (; ℓ) = ∇ℓ
     y, back = Tracker.forward(x -> logdensity(ℓ, x), x)
     yval = Tracker.data(y)
     # work around https://github.com/FluxML/Flux.jl/issues/497
