@@ -46,7 +46,7 @@ function ADgradient(::Val{:Enzyme}, ℓ; mode::Enzyme.Mode = Enzyme.Reverse, sha
         @info "keyword argument `shadow` is ignored in reverse mode"
         shadow = nothing
     end
-    return EnzymeGradientLogDensity(ℓ, WithPrimal(mode), shadow)
+    return EnzymeGradientLogDensity(ℓ, Enzyme.WithPrimal(mode), shadow)
 end
 
 function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
