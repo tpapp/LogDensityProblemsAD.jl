@@ -8,6 +8,7 @@ if isdefined(Base, :get_extension)
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import Enzyme
+    using Enzyme: EnzymeCore
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
 
@@ -46,7 +47,7 @@ function ADgradient(::Val{:Enzyme}, ℓ; mode::Enzyme.Mode = Enzyme.Reverse, sha
         @info "keyword argument `shadow` is ignored in reverse mode"
         shadow = nothing
     end
-    return EnzymeGradientLogDensity(ℓ, Enzyme.WithPrimal(mode), shadow)
+    return EnzymeGradientLogDensity(ℓ, EnzymeCore.WithPrimal(mode), shadow)
 end
 
 function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
