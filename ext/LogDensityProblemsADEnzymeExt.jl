@@ -45,24 +45,8 @@ function ADgradient(::Val{:Enzyme}, ℓ; mode::Enzyme.Mode = Enzyme.Reverse, sha
     if mode isa Enzyme.ReverseMode && shadow !== nothing
         @info "keyword argument `shadow` is ignored in reverse mode"
         shadow = nothing
-
     end
-    return EnzymeGradientLogDensity(ℓ, _set_needs_primal(mode), shadow)
-end
-
-function _set_needs_primal(ad::Enzyme.ReverseMode{PR, RT, ABI, Holo, Err}) where {PR, RT, ABI, Holo, Err}
-    PR && return ad
-    return Enzyme.ReverseMode{true, RT, ABI, Holo, Err}()
-end
-
-function _set_needs_primal(ad::Enzyme.ForwardMode{PR, ABI, Err, RT}) where {PR, ABI, Err, RT}
-    PR && return ad
-    return Enzyme.ForwardMode{true, ABI, Err, RT}()
-end
-
-function _set_needs_primal(ad::Enzyme.Mode) 
-    throw(ArgumentError("Enzyme mode ($ad) is not supported."*
-                        "Currently only `ReverseMode` and `ForwardMode` are supported."))
+    return EnzymeGradientLogDensity(ℓ, WithPrimal(mode), shadow)
 end
 
 function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
@@ -80,11 +64,10 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
     return y, collect(∂ℓ_∂x)
 end
 
-function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode{WP, RT}},
-                                 x::AbstractVector) where {WP, RT}
-    (; ℓ) = ∇ℓ
+function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
+                                 x::AbstractVector)
+    (; ℓ, mode) = ∇ℓ
     ∂ℓ_∂x = zero(x)
-    mode = ∇ℓ.mode
     _, y = Enzyme.autodiff(mode, logdensity, Enzyme.Active,
                            Enzyme.Const(ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
