@@ -290,15 +290,15 @@ end
 
 @testset "DifferentiationInterface for unsupported ADTypes" begin
     # FiniteDifferences is not part of the extension that converts ADTypes to symbols
-    backend = ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(3, 1))
+    backend = ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1))
     ℓ = TestLogDensity(test_logdensity1)
     for ∇ℓ in (ADgradient(backend, ℓ), ADgradient(backend, ℓ; x=zeros(3)))
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ in 1:100
             x = randn(3)
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x) atol = 1e-4
-            @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x)) atol = 1e-4
+            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
+            @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x)) atol = 1e-5
         end
     end
 end
