@@ -9,7 +9,7 @@ else
 end
 
 """
-    ADgradient(ad::ADTypes.AbstractADType, ℓ)
+    ADgradient(ad::ADTypes.AbstractADType, ℓ; x=nothing)
 
 Wrap log density `ℓ` using automatic differentiation (AD) of type `ad` to obtain a gradient.
 
@@ -19,8 +19,11 @@ Currently,
 - `ad::ADTypes.AutoReverseDiff`
 - `ad::ADTypes.AutoTracker`
 - `ad::ADTypes.AutoZygote`
-are supported.
+are supported with custom implementations.
 The AD configuration specified by `ad` is forwarded to the corresponding calls of `ADgradient(Val(...), ℓ)`.    
+
+!!! warning
+    If you want to use another backend from ADTypes which is not in the list above, or if you want to provide `x` as a keyword argument, you need to load DifferentiationInterface first.
 """
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
