@@ -8,6 +8,11 @@ import BenchmarkTools                            # load the heuristic chunks cod
 using ComponentArrays: ComponentVector           # test with other vector types
 import DifferentiationInterface
 
+DIGradient = Base.get_extension(
+    LogDensityProblemsAD,
+    :LogDensityProblemsADDifferentiationInterfaceExt
+).DIGradient
+
 struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false, false} end
 
 ####
@@ -92,6 +97,7 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
 
     # ADTypes support
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
+   @test !isa(ADgradient(ADTypes.AutoReverseDiff(), ℓ), DIGradient)
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -128,6 +134,7 @@ end
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
+    @test !isa(ADgradient(ADTypes.AutoForwardDiff(), ℓ), DIGradient)
 
     for _ in 1:100
         x = randn(3)
@@ -212,6 +219,7 @@ end
 
    # ADTypes support
    @test ADgradient(ADTypes.AutoTracker(), ℓ) === ∇ℓ
+   @test !isa(ADgradient(ADTypes.AutoTracker(), ℓ), DIGradient)
 end
 
 @testset "AD via Zygote" begin
@@ -228,6 +236,7 @@ end
 
    # ADTypes support
    @test ADgradient(ADTypes.AutoZygote(), ℓ) === ∇ℓ
+   @test !isa(ADgradient(ADTypes.AutoZygote(), ℓ), DIGradient)
 end
 
 @testset "AD via Enzyme" begin
@@ -242,6 +251,7 @@ end
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
+    @test !isa(ADgradient(ADTypes.AutoEnzyme(), ℓ), DIGradient)
 
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
@@ -313,6 +323,7 @@ end
         end
     end
     @testset "$(typeof(∇ℓ))" for ∇ℓ in ∇ℓ_candidates
+        @test ∇ℓ isa DIGradient
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ in 1:100
@@ -321,4 +332,4 @@ end
             @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x)) atol = 1e-5
         end
     end
-end
+end;
