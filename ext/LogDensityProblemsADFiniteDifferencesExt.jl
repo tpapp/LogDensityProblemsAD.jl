@@ -3,17 +3,10 @@ Gradient implementation using FiniteDifferences.
 """
 module LogDensityProblemsADFiniteDifferencesExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADGradientWrapper, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import FiniteDifferences
-else
-    using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ..FiniteDifferences
-end
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import FiniteDifferences
 
 struct FiniteDifferencesGradientLogDensity{L,M} <: ADGradientWrapper
     ℓ::L

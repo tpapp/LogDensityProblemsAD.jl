@@ -3,19 +3,11 @@ Gradient AD implementation using ReverseDiff.
 """
 module LogDensityProblemsADReverseDiffExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
 
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ReverseDiff
-    import ReverseDiff: DiffResults
-else
-    using ..LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
-
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ..ReverseDiff
-    import ..ReverseDiff: DiffResults
-end
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import ReverseDiff
+import ReverseDiff: DiffResults
 
 # Load DiffResults helpers
 include("DiffResults_helpers.jl")

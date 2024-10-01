@@ -3,17 +3,10 @@ Gradient AD implementation using Tracker.
 """
 module LogDensityProblemsADTrackerExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADGradientWrapper, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import Tracker
-else
-    using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ..Tracker
-end
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import Tracker
 
 struct TrackerGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
