@@ -1,14 +1,8 @@
 module LogDensityProblemsADDifferentiationInterfaceExt
 
-if isdefined(Base, :get_extension)
-    import LogDensityProblemsAD
-    import ADTypes
-    import DifferentiationInterface as DI
-else
-    import ..LogDensityProblemsAD
-    import ..ADTypes
-    import ..DifferentiationInterface as DI
-end
+import LogDensityProblemsAD
+import ADTypes
+import DifferentiationInterface as DI
 
 """
     DIGradient <: LogDensityProblemsAD.ADGradientWrapper
