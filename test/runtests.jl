@@ -97,7 +97,9 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
 
     # ADTypes support
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
+    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ; x=rand(3))) === typeof(∇ℓ_compile_x)
    @test !isa(ADgradient(ADTypes.AutoReverseDiff(), ℓ), DIGradient)
+   @test !isa(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)), DIGradient)
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -135,6 +137,7 @@ end
     # ADTypes support
     @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
     @test !isa(ADgradient(ADTypes.AutoForwardDiff(), ℓ), DIGradient)
+    @test !isa(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3)), DIGradient)
 
     for _ in 1:100
         x = randn(3)
@@ -183,6 +186,7 @@ end
     # ADTypes support
     @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3)
     @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3, tag = TestTag()), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3, tag = TestTag())
+    @test typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3))) == typeof(ADgradient(:ForwardDiff, ℓ; x=rand(3)))
 end
 
 @testset "component vectors" begin
@@ -220,6 +224,7 @@ end
    # ADTypes support
    @test ADgradient(ADTypes.AutoTracker(), ℓ) === ∇ℓ
    @test !isa(ADgradient(ADTypes.AutoTracker(), ℓ), DIGradient)
+   @test !isa(ADgradient(ADTypes.AutoTracker(), ℓ; x=rand(3)), DIGradient)
 end
 
 @testset "AD via Zygote" begin
@@ -237,6 +242,7 @@ end
    # ADTypes support
    @test ADgradient(ADTypes.AutoZygote(), ℓ) === ∇ℓ
    @test !isa(ADgradient(ADTypes.AutoZygote(), ℓ), DIGradient)
+   @test !isa(ADgradient(ADTypes.AutoZygote(), ℓ; x=rand(3)), DIGradient)
 end
 
 @testset "AD via Enzyme" begin
@@ -252,6 +258,7 @@ end
     # ADTypes support
     @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
     @test !isa(ADgradient(ADTypes.AutoEnzyme(), ℓ), DIGradient)
+    @test !isa(ADgradient(ADTypes.AutoEnzyme(), ℓ; x=rand(3)), DIGradient)
 
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
@@ -306,21 +313,12 @@ end
 @testset verbose=true "DifferentiationInterface for unsupported ADTypes" begin
     ℓ = TestLogDensity(test_logdensity1)
     backends = [
-        ADTypes.AutoForwardDiff(),
         ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1)),
-        ADTypes.AutoReverseDiff(),
-        ADTypes.AutoTracker(),
-        ADTypes.AutoZygote(),
     ]
     ∇ℓ_candidates = []
     for backend in backends
-        # DI handles all ADTypes with preparation
+        push!(∇ℓ_candidates, ADgradient(backend, ℓ))
         push!(∇ℓ_candidates, ADgradient(backend, ℓ; x=zeros(3)))
-        # DI handles some ADTypes without preparation only if they don't have an ADType-to-symbol tranlator, otherwise the existing implementation should kick in.
-        if backend isa ADTypes.AutoFiniteDifferences
-            # FiniteDifferences doesn't have an ADType-to-symbol translator. 
-            push!(∇ℓ_candidates, ADgradient(backend, ℓ))
-        end
     end
     @testset "$(typeof(∇ℓ))" for ∇ℓ in ∇ℓ_candidates
         @test ∇ℓ isa DIGradient

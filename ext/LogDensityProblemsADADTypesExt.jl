@@ -24,13 +24,11 @@ The AD configuration specified by `ad` is forwarded to the corresponding calls o
 
 Passing `x` as a keyword argument means that the gradient operator will be "prepared" for the specific type and size of the array `x`. This can speed up further evaluations on similar inputs, but will likely cause errors if the new inputs have a different type or size. With `AutoReverseDiff`, it can also yield incorrect results if the logdensity contains value-dependent control flow.
 
-!!! warning
-    If you want to use another backend from ADTypes which is not in the list above, or if you want to provide `x` for preparation, you need to load [DifferentiationInterface.jl](https://github.com/gdalle/DifferentiationInterface.jl) first.
-    See the documentation of that package, especially `DifferentiationInterface.prepare_gradient`, for more details on preparation.
+If you want to use another backend from [ADTypes.jl](https://github.com/SciML/ADTypes.jl) which is not in the list above, you need to load [DifferentiationInterface.jl](https://github.com/gdalle/DifferentiationInterface.jl) first.
 """
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ)
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
     if ad.mode === nothing
         # Use default mode (Enzyme.Reverse)
         return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
@@ -39,25 +37,25 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ)
     end
 end
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ) where {C}
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ; x::Union{Nothing,AbstractVector}=nothing) where {C}
     if C === nothing
         # Use default chunk size
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; tag = ad.tag)
+        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; tag = ad.tag, x=x)
     else
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C, tag = ad.tag)
+        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C, tag = ad.tag, x=x)
     end
 end
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ) where {T}
-    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T))
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ; x::Union{Nothing,AbstractVector}=nothing) where {T}
+    return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T), x=x)
 end
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ)
+function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ; x::Union{Nothing,AbstractVector}=nothing)
     return LogDensityProblemsAD.ADgradient(Val(:Tracker), ℓ)
 end
 
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoZygote, ℓ)
+function LogDensityProblemsAD.ADgradient(::ADTypes.AutoZygote, ℓ; x::Union{Nothing,AbstractVector}=nothing)
     return LogDensityProblemsAD.ADgradient(Val(:Zygote), ℓ)
 end
 
