@@ -288,11 +288,26 @@ end
     @test length(b) ≤ 20
 end
 
-@testset "DifferentiationInterface for unsupported ADTypes" begin
-    # FiniteDifferences is not part of the extension that converts ADTypes to symbols
-    backend = ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1))
+@testset verbose=true "DifferentiationInterface for unsupported ADTypes" begin
     ℓ = TestLogDensity(test_logdensity1)
-    for ∇ℓ in (ADgradient(backend, ℓ), ADgradient(backend, ℓ; x=zeros(3)))
+    backends = [
+        ADTypes.AutoForwardDiff(),
+        ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1)),
+        ADTypes.AutoReverseDiff(),
+        ADTypes.AutoTracker(),
+        ADTypes.AutoZygote(),
+    ]
+    ∇ℓ_candidates = []
+    for backend in backends
+        # DI handles all ADTypes with preparation
+        push!(∇ℓ_candidates, ADgradient(backend, ℓ; x=zeros(3)))
+        # DI handles some ADTypes without preparation only if they don't have an ADType-to-symbol tranlator, otherwise the existing implementation should kick in.
+        if backend isa ADTypes.AutoFiniteDifferences
+            # FiniteDifferences doesn't have an ADType-to-symbol translator. 
+            push!(∇ℓ_candidates, ADgradient(backend, ℓ))
+        end
+    end
+    @testset "$(typeof(∇ℓ))" for ∇ℓ in ∇ℓ_candidates
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ in 1:100

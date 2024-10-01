@@ -21,7 +21,7 @@ Gradient wrapper which uses [DifferentiationInterface.jl](https://github.com/gda
 - `prep`: either `nothing` or the output of `DifferentiationInterface.prepare_gradient` applied to the logdensity and the provided input
 - `ℓ`: logdensity function, amenable to `LogDensityProblemsAD.logdensity(ℓ, x)`
 """
-struct DIGradient{B<:AbstractADType,P,L} <: LogDensityProblemsAD.ADGradientWrapper
+struct DIGradient{B<:ADTypes.AbstractADType,P,L} <: LogDensityProblemsAD.ADGradientWrapper
     backend::B
     prep::P
     ℓ::L
