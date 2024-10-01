@@ -46,4 +46,6 @@ x = zeros(LogDensityProblems.dimension(ℓ)) # ℓ is your log density
     
 5. [FiniteDifferences.jl](https://github.com/JuliaDiff/FiniteDifferences.jl) Finite differences are very robust, with a small numerical error, but usually not fast enough to practically replace AD on nontrivial problems. The backend in this package is mainly intended for checking and debugging results from other backends; but note that in most cases ForwardDiff is faster and more accurate.
 
-PRs for other AD frameworks are welcome, even if they are WIP.
+Other AD frameworks are supported thanks to [ADTypes.jl](https://github.com/SciML/ADTypes.jl) and [DifferentiationInterface.jl](https://github.com/gdalle/DifferentiationInterface.jl).
+
+PRs for remaining AD frameworks are welcome, even if they are WIP.
