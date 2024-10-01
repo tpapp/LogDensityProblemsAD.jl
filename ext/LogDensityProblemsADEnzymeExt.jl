@@ -8,6 +8,7 @@ if isdefined(Base, :get_extension)
 
     import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
     import Enzyme
+    using Enzyme: EnzymeCore
 else
     using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
 
@@ -46,7 +47,7 @@ function ADgradient(::Val{:Enzyme}, ℓ; mode::Enzyme.Mode = Enzyme.Reverse, sha
         @info "keyword argument `shadow` is ignored in reverse mode"
         shadow = nothing
     end
-    return EnzymeGradientLogDensity(ℓ, mode, shadow)
+    return EnzymeGradientLogDensity(ℓ, EnzymeCore.WithPrimal(mode), shadow)
 end
 
 function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
@@ -58,7 +59,7 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
                                  x::AbstractVector)
     (; ℓ, mode, shadow) = ∇ℓ
     _shadow = shadow === nothing ? Enzyme.onehot(x) : shadow
-    y, ∂ℓ_∂x = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
+    ∂ℓ_∂x, y = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
                                Enzyme.Const(ℓ),
                                Enzyme.BatchDuplicated(x, _shadow))
     return y, collect(∂ℓ_∂x)
@@ -66,9 +67,9 @@ end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
                                  x::AbstractVector)
-    (; ℓ) = ∇ℓ
+    (; ℓ, mode) = ∇ℓ
     ∂ℓ_∂x = zero(x)
-    _, y = Enzyme.autodiff(Enzyme.ReverseWithPrimal, logdensity, Enzyme.Active,
+    _, y = Enzyme.autodiff(mode, logdensity, Enzyme.Active,
                            Enzyme.Const(ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end

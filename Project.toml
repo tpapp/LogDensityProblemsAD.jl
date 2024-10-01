@@ -1,7 +1,7 @@
 name = "LogDensityProblemsAD"
 uuid = "996a588d-648d-4e1f-a8f0-a84b347e47b1"
 authors = ["Tamás K. Papp <tkpapp@gmail.com>"]
-version = "1.10.1"
+version = "1.10.2"
 
 [deps]
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
@@ -34,14 +34,14 @@ ADTypes = "1.5"
 DifferentiationInterface = "0.6.1"
 BenchmarkTools = "1"
 DocStringExtensions = "0.8, 0.9"
-Enzyme = "0.11, 0.12, 0.13"
+Enzyme = "0.13.3"
 FiniteDifferences = "0.12"
 ForwardDiff = "0.10"
 LogDensityProblems = "1, 2"
 ReverseDiff = "1"
 Tracker = "0.2"
 Zygote = "0.6"
-julia = "1.9"
+julia = "1.10"
 
 [extras]
 ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"

@@ -8,7 +8,7 @@ import BenchmarkTools                            # load the heuristic chunks cod
 using ComponentArrays: ComponentVector           # test with other vector types
 import DifferentiationInterface
 
-struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false} end
+struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false, false} end
 
 ####
 #### test setup and utilities
@@ -234,13 +234,18 @@ end
     ℓ = TestLogDensity(test_logdensity1)
 
     ∇ℓ_reverse = ADgradient(:Enzyme, ℓ)
+    ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     @test ∇ℓ_reverse === ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse)
+    @test ∇ℓ_reverse.mode === Enzyme.ReverseWithPrimal
+    @test ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse) === ADgradient(:Enzyme, ℓ; mode=Enzyme.ReverseWithPrimal)
     @test repr(∇ℓ_reverse) == "Enzyme AD wrapper for " * repr(ℓ) * " with reverse mode"
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
 
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
+    @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
+    @test ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal) === ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal)
     ∇ℓ_forward_shadow = ADgradient(:Enzyme, ℓ;
                                    mode=Enzyme.Forward,
                                    shadow=Enzyme.onehot(Vector{Float64}(undef, dimension(ℓ))))
