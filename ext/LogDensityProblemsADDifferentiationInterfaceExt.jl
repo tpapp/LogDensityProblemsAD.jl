@@ -42,7 +42,7 @@ function LogDensityProblemsAD.ADgradient(backend::ADTypes.AbstractADType, ℓ; x
 end
 
 function LogDensityProblemsAD.logdensity_and_gradient(∇ℓ::DIGradient, x)
-    backend, prep, ℓ = ∇ℓ.backend, ∇ℓ.prep, ∇ℓ.ℓ
+    (; backend, prep, ℓ) = ∇ℓ
     if isnothing(prep)
         return DI.value_and_gradient(logdensity_switched, backend, x, DI.Constant(ℓ))
     else
