@@ -24,8 +24,13 @@ The AD configuration specified by `ad` is forwarded to the corresponding calls o
 """
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoEnzyme, ℓ)
-    return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
+function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ)
+    if ad.mode === nothing
+        # Use default mode (Enzyme.Reverse)
+        return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
+    else
+        return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ; mode=ad.mode)
+    end
 end
 
 function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ) where {C}
