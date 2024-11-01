@@ -26,8 +26,8 @@ function logdensity_switched(x, ℓ)
     return LogDensityProblemsAD.logdensity(ℓ, x)
 end
 
-function LogDensityProblemsAD.ADgradient(backend::ADTypes.AbstractADType, ℓ; x=nothing)
-    if isnothing(x)
+function LogDensityProblemsAD.ADgradient(backend::ADTypes.AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+    if x === nothing
         prep = nothing
     else
         prep = DI.prepare_gradient(logdensity_switched, backend, x, DI.Constant(ℓ))
@@ -35,9 +35,9 @@ function LogDensityProblemsAD.ADgradient(backend::ADTypes.AbstractADType, ℓ; x
     return DIGradient(backend, prep, ℓ)
 end
 
-function LogDensityProblemsAD.logdensity_and_gradient(∇ℓ::DIGradient, x)
+function LogDensityProblemsAD.logdensity_and_gradient(∇ℓ::DIGradient, x::AbstractVector)
     (; backend, prep, ℓ) = ∇ℓ
-    if isnothing(prep)
+    if prep === nothing
         return DI.value_and_gradient(logdensity_switched, backend, x, DI.Constant(ℓ))
     else
         return DI.value_and_gradient(logdensity_switched, prep, backend, x, DI.Constant(ℓ))

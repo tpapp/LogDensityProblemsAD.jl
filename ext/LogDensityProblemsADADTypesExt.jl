@@ -9,7 +9,7 @@ else
 end
 
 """
-    ADgradient(ad::ADTypes.AbstractADType, ℓ; x=nothing)
+    ADgradient(ad::ADTypes.AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)
 
 Wrap log density `ℓ` using automatic differentiation (AD) of type `ad` to obtain a gradient.
 

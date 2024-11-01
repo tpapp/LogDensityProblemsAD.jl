@@ -8,11 +8,6 @@ import BenchmarkTools                            # load the heuristic chunks cod
 using ComponentArrays: ComponentVector           # test with other vector types
 import DifferentiationInterface
 
-DIGradient = Base.get_extension(
-    LogDensityProblemsAD,
-    :LogDensityProblemsADDifferentiationInterfaceExt
-).DIGradient
-
 struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false, false} end
 
 ####
@@ -98,8 +93,8 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
     # ADTypes support
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ; x=rand(3))) === typeof(∇ℓ_compile_x)
-   @test !isa(ADgradient(ADTypes.AutoReverseDiff(), ℓ), DIGradient)
-   @test !isa(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)), DIGradient)
+   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ))) !== :DIGradient
+   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3))) !== :DIGradient
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -136,8 +131,8 @@ end
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
-    @test !isa(ADgradient(ADTypes.AutoForwardDiff(), ℓ), DIGradient)
-    @test !isa(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3)), DIGradient)
+    @test nameof(typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ))) !== :DIGradient
+    @test nameof(typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3)))) !== :DIGradient
 
     for _ in 1:100
         x = randn(3)
@@ -223,8 +218,8 @@ end
 
    # ADTypes support
    @test ADgradient(ADTypes.AutoTracker(), ℓ) === ∇ℓ
-   @test !isa(ADgradient(ADTypes.AutoTracker(), ℓ), DIGradient)
-   @test !isa(ADgradient(ADTypes.AutoTracker(), ℓ; x=rand(3)), DIGradient)
+   @test nameof(typeof(ADgradient(ADTypes.AutoTracker(), ℓ))) !== :DIGradient
+   @test nameof(typeof(ADgradient(ADTypes.AutoTracker(), ℓ; x=rand(3)))) !== :DIGradient
 end
 
 @testset "AD via Zygote" begin
@@ -241,8 +236,8 @@ end
 
    # ADTypes support
    @test ADgradient(ADTypes.AutoZygote(), ℓ) === ∇ℓ
-   @test !isa(ADgradient(ADTypes.AutoZygote(), ℓ), DIGradient)
-   @test !isa(ADgradient(ADTypes.AutoZygote(), ℓ; x=rand(3)), DIGradient)
+   @test nameof(typeof(ADgradient(ADTypes.AutoZygote(), ℓ))) !== :DIGradient
+   @test nameof(typeof(ADgradient(ADTypes.AutoZygote(), ℓ; x=rand(3)))) !== :DIGradient
 end
 
 @testset "AD via Enzyme" begin
@@ -257,8 +252,8 @@ end
 
     # ADTypes support
     @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
-    @test !isa(ADgradient(ADTypes.AutoEnzyme(), ℓ), DIGradient)
-    @test !isa(ADgradient(ADTypes.AutoEnzyme(), ℓ; x=rand(3)), DIGradient)
+    @test nameof(typeof(ADgradient(ADTypes.AutoEnzyme(), ℓ))) !== :DIGradient
+    @test nameof(typeof(ADgradient(ADTypes.AutoEnzyme(), ℓ; x=rand(3)))) !== :DIGradient
 
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
