@@ -94,7 +94,7 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ; x=rand(3))) === typeof(∇ℓ_compile_x)
    @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ))) !== :DIGradient
-   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3))) !== :DIGradient
+   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)))) !== :DIGradient
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -316,7 +316,7 @@ end
         push!(∇ℓ_candidates, ADgradient(backend, ℓ; x=zeros(3)))
     end
     @testset "$(typeof(∇ℓ))" for ∇ℓ in ∇ℓ_candidates
-        @test ∇ℓ isa DIGradient
+        @test nameof(typeof(∇ℓ)) == :DIGradient
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ in 1:100
