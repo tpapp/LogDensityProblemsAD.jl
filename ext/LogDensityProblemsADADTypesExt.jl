@@ -29,6 +29,9 @@ If you want to use another backend from [ADTypes.jl](https://github.com/SciML/AD
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
 function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+    if x !== nothing  
+        @warn "`ADgradient`: Keyword argument `x` is ignored"  
+    end
     if ad.mode === nothing
         # Use default mode (Enzyme.Reverse)
         return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
@@ -51,11 +54,17 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ; x:
 end
 
 function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+    if x !== nothing  
+        @warn "`ADgradient`: Keyword argument `x` is ignored"  
+    end
     return LogDensityProblemsAD.ADgradient(Val(:Tracker), ℓ)
 end
 
 
 function LogDensityProblemsAD.ADgradient(::ADTypes.AutoZygote, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+    if x !== nothing  
+        @warn "`ADgradient`: Keyword argument `x` is ignored"  
+    end
     return LogDensityProblemsAD.ADgradient(Val(:Zygote), ℓ)
 end
 
