@@ -68,4 +68,15 @@ function LogDensityProblemsAD.ADgradient(::ADTypes.AutoZygote, ℓ; x::Union{Not
     return LogDensityProblemsAD.ADgradient(Val(:Zygote), ℓ)
 end
 
+# Better error message if users forget to load DifferentiationInterface
+if isdefined(Base.Experimental, :register_error_hint)
+    function __init__()
+        Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, _
+            if exc.f === LogDensityProblemsAD.ADgradient && length(argtypes) == 2 && first(argtypes) <: ADTypes.AbstractADType
+                print(io, "\nDon't know how to AD with $(first(argtypes)). Did you forget to load DifferentiationInterface?")
+            end
+        end
+    end
+end
+
 end # module
