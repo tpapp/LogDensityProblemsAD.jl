@@ -295,8 +295,7 @@ end
 end
 
 @testset "ADgradient missing method" begin
-    msg = "Don't know how to AD with Foo, consider `import Foo` if there is such a package."
-    @test_logs((:info, msg), @test_throws(MethodError, ADgradient(:Foo, TestLogDensity2())))
+    @test_throws "Don't know how to AD with Foo, consider `import Foo` if there is such a package." ADgradient(:Foo, TestLogDensity2())
 end
 
 @testset "benchmark ForwardDiff chunk size" begin
