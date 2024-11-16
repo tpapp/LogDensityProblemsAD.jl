@@ -6,7 +6,6 @@ import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # ba
 import ADTypes # load support for AD types with options
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
-import DifferentiationInterface
 
 struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false, false} end
 
@@ -70,6 +69,15 @@ struct TestTag end
 
 # Allow tag type in gradient etc. calls of the log density function
 ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
+
+@testset "Missing DI for unsupported ADType" begin
+    msg = "Don't know how to AD with AutoFiniteDifferences. Did you forget to load DifferentiationInterface?"
+    adtype = ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1))
+    @test_throws msg ADgradient(adtype, TestLogDensity2())
+    @test_throws msg ADgradient(adtype, TestLogDensity2(); x=zeros(20))
+end
+
+import DifferentiationInterface
 
 @testset "AD via ReverseDiff" begin
     ℓ = TestLogDensity()
@@ -295,7 +303,11 @@ end
 end
 
 @testset "ADgradient missing method" begin
-    @test_throws "Don't know how to AD with Foo, consider `import Foo` if there is such a package." ADgradient(:Foo, TestLogDensity2())
+    msg = "Don't know how to AD with Foo, consider `import Foo` if there is such a package."
+    @test_throws msg ADgradient(:Foo, TestLogDensity2())
+    @test_throws msg ADgradient(:Foo, TestLogDensity2(); x=zeros(20))
+    @test_throws msg ADgradient(Val(:Foo), TestLogDensity2())
+    @test_throws msg ADgradient(Val(:Foo), TestLogDensity2(); x=zeros(20))
 end
 
 @testset "benchmark ForwardDiff chunk size" begin
