@@ -63,9 +63,17 @@ The function `parent` can be used to retrieve the original argument.
 """
 ADgradient(kind::Symbol, P; kwargs...) = ADgradient(Val{kind}(), P; kwargs...)
 
-function ADgradient(v::Val{kind}, P; kwargs...) where kind
-    @info "Don't know how to AD with $(kind), consider `import $(kind)` if there is such a package."
-    throw(MethodError(ADgradient, (v, P)))
+# Better error message if users forget to load the AD package
+if isdefined(Base.Experimental, :register_error_hint)
+    _unval(::Type{Val{T}}) where {T} = T
+    function __init__()
+        Base.Experimental.register_error_hint(MethodError) do io, exc, argtypes, _
+            if exc.f === ADgradient && length(argtypes) == 2 && first(argtypes) <: Val
+                kind = _unval(first(argtypes))
+                print(io, "\nDon't know how to AD with $(kind), consider `import $(kind)` if there is such a package.")
+            end
+        end
+    end
 end
 
 #####
