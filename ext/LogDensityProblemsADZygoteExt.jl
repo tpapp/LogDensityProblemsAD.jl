@@ -3,17 +3,10 @@ Gradient AD implementation using Zygote.
 """
 module LogDensityProblemsADZygoteExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADGradientWrapper, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, logdensity
     
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
-    import Zygote
-else
-    using ..LogDensityProblemsAD: ADGradientWrapper, logdensity
-
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ..Zygote
-end
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
+import Zygote
 
 struct ZygoteGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
