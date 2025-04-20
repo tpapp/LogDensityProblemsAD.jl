@@ -1,12 +1,7 @@
 module LogDensityProblemsADADTypesExt
 
-if isdefined(Base, :get_extension)
-    import LogDensityProblemsAD
-    import ADTypes
-else
-    import ..LogDensityProblemsAD
-    import ..ADTypes
-end
+import LogDensityProblemsAD
+import ADTypes
 
 """
     ADgradient(ad::ADTypes.AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)

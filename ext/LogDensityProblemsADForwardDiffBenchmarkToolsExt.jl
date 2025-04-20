@@ -5,19 +5,11 @@ Loaded when both ForwardDiff and BenchmarkTools are loaded.
 """
 module LogDensityProblemsADForwardDiffBenchmarkToolsExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADgradient, SIGNATURES, dimension, logdensity_and_gradient
-    using BenchmarkTools: @belapsed
-    using ForwardDiff: Chunk
+using LogDensityProblemsAD: ADgradient, SIGNATURES, dimension, logdensity_and_gradient
+using BenchmarkTools: @belapsed
+using ForwardDiff: Chunk
 
-    import LogDensityProblemsAD: benchmark_ForwardDiff_chunks, heuristic_chunks
-else
-    using ..LogDensityProblemsAD: ADgradient, SIGNATURES, dimension, logdensity_and_gradient
-    using ..BenchmarkTools: @belapsed
-    using ..ForwardDiff: Chunk
-
-    import ..LogDensityProblemsAD: benchmark_ForwardDiff_chunks, heuristic_chunks
-end
+import LogDensityProblemsAD: benchmark_ForwardDiff_chunks, heuristic_chunks
 
 """
 $(SIGNATURES)

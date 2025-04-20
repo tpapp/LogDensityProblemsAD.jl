@@ -3,19 +3,11 @@ Gradient AD implementation using ForwardDiff.
 """
 module LogDensityProblemsADForwardDiffExt
 
-if isdefined(Base, :get_extension)
-    using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
 
-    import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ForwardDiff
-    import ForwardDiff: DiffResults
-else
-    using ..LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
-
-    import ..LogDensityProblemsAD: ADgradient, logdensity_and_gradient
-    import ..ForwardDiff
-    import ..ForwardDiff: DiffResults
-end
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import ForwardDiff
+import ForwardDiff: DiffResults
 
 # Load DiffResults helpers
 include("DiffResults_helpers.jl")
