@@ -24,12 +24,12 @@ jobs:
         arch:
           - x64
     steps:
-      - uses: actions/checkout@v2
+      - uses: actions/checkout@v4
       - uses: julia-actions/setup-julia@v2
         with:
           version: ${{ matrix.version }}
           arch: ${{ matrix.arch }}
-      - uses: actions/cache@v1
+      - uses: actions/cache@v4
         env:
           cache-name: cache-artifacts
         with:
@@ -42,31 +42,9 @@ jobs:
       - uses: julia-actions/julia-buildpkg@v1
       - uses: julia-actions/julia-runtest@v1
       - uses: julia-actions/julia-processcoverage@v1
-      - uses: codecov/codecov-action@v1
+      - uses: codecov/codecov-action@v5
         with:
           file: lcov.info
-  ## NOTE: uncomment below to generate and deploy docs, also add the relevant deploy key as described
-  ## in https://juliadocs.github.io/Documenter.jl/dev/man/hosting/#Authentication:-SSH-Deploy-Keys
-  # docs:                        
-  #   name: Documentation
-  #   runs-on: ubuntu-latest
-  #   steps:
-  #     - uses: actions/checkout@v2
-  #     - uses: julia-actions/setup-julia@v1
-  #       with:
-  #         version: '1'
-  #     - run: |
-  #         julia --project=docs -e '
-  #           using Pkg
-  #           Pkg.develop(PackageSpec(path=pwd()))
-  #           Pkg.instantiate()'
-  #     - run: |
-  #         julia --project=docs -e '
-  #           using Documenter: doctest
-  #           using LogDensityProblemsAD
-  #           DocMeta.setdocmeta!(LogDensityProblemsAD, :DocTestSetup, :(using LogDensityProblemsAD); recursive=true)
-  #           doctest(LogDensityProblemsAD)'
-  #     - run: julia --project=docs docs/make.jl
-  #       env:
-  #         GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-  #         DOCUMENTER_KEY: ${{ secrets.DOCUMENTER_KEY }}
+          # NOTE: you need to add the token to Github secrets, see
+          # https://docs.codecov.com/docs/adding-the-codecov-token
+          token: ${{ secrets.CODECOV_TOKEN }}
