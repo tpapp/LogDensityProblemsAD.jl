@@ -31,8 +31,8 @@ LogDensityProblemsADZygoteExt = "Zygote"
 
 [compat]
 ADTypes = "1.5"
-DifferentiationInterface = "0.6.1"
 BenchmarkTools = "1"
+DifferentiationInterface = "0.6.1, 0.7"
 DocStringExtensions = "0.8, 0.9"
 Enzyme = "0.13.3"
 FiniteDifferences = "0.12"
