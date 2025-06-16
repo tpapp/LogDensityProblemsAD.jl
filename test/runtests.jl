@@ -7,8 +7,6 @@ import ADTypes # load support for AD types with options
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
-struct EnzymeTestMode <: Enzyme.Mode{Enzyme.DefaultABI, false, false} end
-
 ####
 #### test setup and utilities
 ####
@@ -284,7 +282,8 @@ end
     end
 
     # Branches in `ADgradient`
-    @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode=EnzymeTestMode())
+    struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
+    @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode = MockEnzymeMode())
     ∇ℓ = @test_logs (:info, "keyword argument `shadow` is ignored in reverse mode") ADgradient(:Enzyme, ℓ; shadow = (1,))
     @test ∇ℓ.shadow === nothing
 end
