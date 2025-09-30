@@ -2,7 +2,8 @@ using LogDensityProblemsAD
 using Test, Random
 import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
-import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
+import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff,
+    Mooncake # backends
 using ADTypes # load support for AD types with options
 import DifferentiationInterface
 using ComponentArrays: ComponentVector           # test with other vector types
@@ -78,6 +79,7 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, _, ::AbstractArray{V})
         AutoForwardDiff() => "ForwardDiff w/ defaults",
         AutoForwardDiff(; tag = TestTag()) => "ForwardDiff w/ tag",
         AutoForwardDiff(; chunksize = 1) => "ForwardDiff w/ chunk size",
+        AutoMooncake() => "Mooncake",
         AutoReverseDiff(; compile = false) => "ReverseDiff w/o compile",
         AutoReverseDiff(; compile = true) => "ReverseDiff compile",
         AutoTracker() => "Tracker",
@@ -85,19 +87,32 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, _, ::AbstractArray{V})
     ]
     ℓ = TestLogDensity(test_logdensity1)
     D = dimension(ℓ)
-    for x in Any[zeros(D), zeros(Float32, D), ComponentVector(x = zeros(D))]
+    for (x, x_label) in Any[zeros(D) => "Vector{Float64}",
+                            zeros(Float32, D) => "Vector{Float32}",
+                            ComponentVector(x = zeros(D)) => "ComponentVector"]
         tol = eps(eltype(x))^0.25 # Float32 needs lower tolerance
         for (backend, backend_label) in BACKENDS
             for (∇ℓ, ∇ℓ_label) in [ADgradient(backend, ℓ) => "$(backend_label) no prep",
                                    ADgradient(backend, ℓ; x) => "$(backend_label) w/ prep"]
-                @testset "$(∇ℓ_label)" begin
+                @testset "$(∇ℓ_label) w/ $(x_label)" begin
                     @test dimension(∇ℓ) == dimension(ℓ)
                     @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
                     for _ in 1:10
+                        if x isa ComponentVector && backend ≡ AutoMooncake()
+                            # skip this test because of
+                            # https://github.com/chalk-lab/Mooncake.jl/issues/472
+                            break
+                        end
                         randn!(x)
                         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-                        @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                            (test_logdensity1(x), test_gradient(x)) atol = tol
+                        if backend ≡ AutoMooncake() && ∇ℓ.prep ≡ nothing
+                            # NOTE inference is broken, investigate
+                            @test logdensity_and_gradient(∇ℓ, x) ≅
+                                (test_logdensity1(x), test_gradient(x)) atol = tol
+                        else
+                            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+                                (test_logdensity1(x), test_gradient(x)) atol = tol
+                        end
                     end
                 end
             end
