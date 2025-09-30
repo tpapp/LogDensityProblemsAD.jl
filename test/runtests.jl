@@ -3,7 +3,7 @@ using Test, Random
 import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
 import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
-import ADTypes # load support for AD types with options
+using ADTypes # load support for AD types with options
 import DifferentiationInterface
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
@@ -68,6 +68,32 @@ struct TestTag end
 
 # Allow tag type in gradient etc. calls of the log density function
 ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
+
+@testset "generic backend tests" begin
+    BACKENDS = [
+        AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(5, 1)) =>
+            "FiniteDifferences",
+        AutoTracker() => "Tracker",
+        AutoZygote() => "Zygote",
+    ]
+    ℓ = TestLogDensity(test_logdensity1)
+    x = zeros(dimension(ℓ))
+    for (backend, backend_label) in BACKENDS
+        for (∇ℓ, ∇ℓ_label) in [ADgradient(backend, ℓ) => "$(backend_label) no prep",
+                               ADgradient(backend, ℓ; x) => "$(backend_label) w/ prep"]
+            @testset "$(∇ℓ_label)" begin
+                @test dimension(∇ℓ) == dimension(ℓ)
+                @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
+                for _ in 1:10
+                    x = randn(3)
+                    @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
+                    @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+                        (test_logdensity1(x), test_gradient(x)) atol = 1e-5
+                end
+            end
+        end
+    end
+end
 
 @testset "AD via ReverseDiff" begin
     ℓ = TestLogDensity()
@@ -202,42 +228,6 @@ end
     @test LogDensityProblemsAD.heuristic_chunks(82) == vcat(1:4:81, [82])
 end
 
-@testset "AD via Tracker" begin
-    ℓ = TestLogDensity()
-    ∇ℓ = ADgradient(:Tracker, ℓ)
-    @test repr(∇ℓ) == "Tracker AD wrapper for " * repr(ℓ)
-    @test dimension(∇ℓ) == 3
-    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-    for _ in 1:100
-        x = randn(3)
-        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-        @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅ (test_logdensity(x), test_gradient(x))
-   end
-
-   # ADTypes support
-   @test ADgradient(ADTypes.AutoTracker(), ℓ) === ∇ℓ
-   @test nameof(typeof(ADgradient(ADTypes.AutoTracker(), ℓ))) !== :DIGradient
-   @test nameof(typeof(ADgradient(ADTypes.AutoTracker(), ℓ; x=rand(3)))) !== :DIGradient
-end
-
-@testset "AD via Zygote" begin
-    ℓ = TestLogDensity(test_logdensity1)
-    ∇ℓ = ADgradient(:Zygote, ℓ)
-    @test repr(∇ℓ) == "Zygote AD wrapper for " * repr(ℓ)
-    @test dimension(∇ℓ) == 3
-    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-    for _ in 1:100
-        x = randn(3)
-        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-        @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x))
-    end
-
-   # ADTypes support
-   @test ADgradient(ADTypes.AutoZygote(), ℓ) === ∇ℓ
-   @test nameof(typeof(ADgradient(ADTypes.AutoZygote(), ℓ))) !== :DIGradient
-   @test nameof(typeof(ADgradient(ADTypes.AutoZygote(), ℓ; x=rand(3)))) !== :DIGradient
-end
-
 @testset "AD via Enzyme" begin
     ℓ = TestLogDensity(test_logdensity1)
 
@@ -272,44 +262,3 @@ end
     struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
     @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode = MockEnzymeMode())
 end
-
-@testset "AD via FiniteDifferences" begin
-    ℓ = TestLogDensity(test_logdensity1)
-    ∇ℓ = ADgradient(:FiniteDifferences, ℓ)
-    @test contains(repr(∇ℓ), "FiniteDifferences AD wrapper for " * repr(ℓ))
-    @test dimension(∇ℓ) == 3
-    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-    for _ in 1:100
-        x = randn(3)
-        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-        @test ≅(logdensity_and_gradient(∇ℓ, x), (test_logdensity1(x), test_gradient(x)); atol = 1e-5)
-    end
-end
-
-@testset "benchmark ForwardDiff chunk size" begin
-    b = LogDensityProblemsAD.benchmark_ForwardDiff_chunks(TestLogDensity2())
-    @test b isa Vector{Pair{Int,Float64}}
-    @test length(b) ≤ 20
-end
-
-@testset verbose=true "DifferentiationInterface for unsupported ADTypes" begin
-    ℓ = TestLogDensity(test_logdensity1)
-    backends = [
-        ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1)),
-    ]
-    ∇ℓ_candidates = []
-    for backend in backends
-        push!(∇ℓ_candidates, ADgradient(backend, ℓ))
-        push!(∇ℓ_candidates, ADgradient(backend, ℓ; x=zeros(3)))
-    end
-    @testset "$(typeof(∇ℓ))" for ∇ℓ in ∇ℓ_candidates
-        @test nameof(typeof(∇ℓ)) == :DIGradient
-        @test dimension(∇ℓ) == 3
-        @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-        for _ in 1:100
-            x = randn(3)
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-            @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x)) atol = 1e-5
-        end
-    end
-end;

@@ -36,12 +36,6 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ; x:
     return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T), x=x)
 end
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ;
-                                         x::Union{Nothing,AbstractVector}=nothing)
-    return LogDensityProblemsAD.ADgradient(Val(:Tracker), ℓ)
-end
-
-
 # Better error message if users forget to load DifferentiationInterface
 if isdefined(Base.Experimental, :register_error_hint)
     function __init__()
