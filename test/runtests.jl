@@ -75,6 +75,8 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
         AutoEnzyme(; mode = Enzyme.Reverse) => "Enzyme w/ Reverse",
         AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(5, 1)) =>
             "FiniteDifferences",
+        AutoReverseDiff(; compile = false) => "ReverseDiff w/o compile",
+        AutoReverseDiff(; compile = true) => "ReverseDiff compile",
         AutoTracker() => "Tracker",
         AutoZygote() => "Zygote",
     ]
@@ -101,57 +103,6 @@ end
     struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
     @test_throws ArgumentError ADgradient(AutoEnzyme(; mode = MockEnzymeMode()),
                                           TestLogDensity(test_logdensity1))
-end
-
-
-@testset "AD via ReverseDiff" begin
-    ℓ = TestLogDensity()
-
-    ∇ℓ_default = ADgradient(:ReverseDiff, ℓ)
-    ∇ℓ_nocompile = ADgradient(:ReverseDiff, ℓ; compile=Val(false))
-    for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile)
-        @test repr(∇ℓ) == "ReverseDiff AD wrapper for " * repr(ℓ) * " (no compiled tape)"
-    end
-
-    # ADTypes support
-    @test ADgradient(ADTypes.AutoReverseDiff(), ℓ) === ∇ℓ_default
-    @test ADgradient(ADTypes.AutoReverseDiff(; compile = Val(false)), ℓ) === ∇ℓ_nocompile
-
-    ∇ℓ_compile = ADgradient(:ReverseDiff, ℓ; compile=Val(true))
-    ∇ℓ_compile_x = ADgradient(:ReverseDiff, ℓ; compile=Val(true), x=rand(3))
-    for ∇ℓ in (∇ℓ_compile, ∇ℓ_compile_x)
-        @test repr(∇ℓ) == "ReverseDiff AD wrapper for " * repr(ℓ) * " (compiled tape)"
-    end
-
-    # ADTypes support
-    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
-    @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ; x=rand(3))) === typeof(∇ℓ_compile_x)
-    @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ))) !== :DIGradient
-    @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)))) !== :DIGradient
-
-    for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
-        @test dimension(∇ℓ) == 3
-        @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-
-        for _ in 1:100
-            x = rand(3)
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                (test_logdensity(x), test_gradient(x))
-
-            x = -x
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-            if ∇ℓ.compiledtape === nothing
-                # Recompute tape => correct results
-                @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                    (test_logdensity(x), zero(x))
-            else
-                # Tape not recomputed => incorrect results, uses always the same branch
-                @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                    (test_logdensity1(x), test_gradient(x))
-            end
-        end
-    end
 end
 
 @testset "AD via ForwardDiff" begin
