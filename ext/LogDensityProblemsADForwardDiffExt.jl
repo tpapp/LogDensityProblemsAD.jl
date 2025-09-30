@@ -3,9 +3,10 @@ Gradient AD implementation using ForwardDiff.
 """
 module LogDensityProblemsADForwardDiffExt
 
-using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, dimension, logdensity
 
-using ADTypes
+using ADTypes: AutoForwardDiff
+using DocStringExtensions: SIGNATURES
 import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 import ForwardDiff
 import ForwardDiff: DiffResults
@@ -51,6 +52,12 @@ function _make_gradient_config(f::F, x, chunk::ForwardDiff.Chunk, tag) where {F}
     gradient_config
 end
 
+"""
+$(SIGNATURES)
+
+When `x` is provided, it is used as a buffer. This is not thread-safe. `copy` the result
+for use in multiple threads.
+"""
 function ADgradient(ad::AutoForwardDiff{C}, ℓ;
                     x::Union{Nothing,AbstractVector} = nothing) where C
     (; tag) = ad

@@ -5,7 +5,7 @@ module LogDensityProblemsADEnzymeExt
 
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
-import ADTypes
+using ADTypes: AutoEnzyme
 using ArgCheck: @argcheck
 import Enzyme
 using Enzyme: EnzymeCore
@@ -17,7 +17,7 @@ struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,
     mode::M
 end
 
-function ADgradient(ad::ADTypes.AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+function ADgradient(ad::AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
     (; mode) = ad
     @argcheck(mode isa Union{Nothing,Enzyme.ForwardMode,Enzyme.ReverseMode},
               "currently automatic differentiation via Enzyme only supports " *
@@ -46,7 +46,8 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
     y, ∂ℓ_∂x
 end
 
-@deprecate(ADgradient(::Val{:Enzyme}, P; mode = Enzyme.Reverse, x = nothing),
-           ADgradient(ADTypes.AutoEnzyme(; mode), P; x))
+@deprecate(ADgradient(::Val{:Enzyme}, P; mode = Enzyme.Reverse, x = nothing,
+                      shadow = nothing),
+           ADgradient(AutoEnzyme(; mode), P; x))
 
 end # module

@@ -3,9 +3,9 @@ Gradient AD implementation using ReverseDiff.
 """
 module LogDensityProblemsADReverseDiffExt
 
-using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, dimension, logdensity
 
-using ADTypes
+using ADTypes: AutoReverseDiff
 import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 import ReverseDiff
 import ReverseDiff: DiffResults

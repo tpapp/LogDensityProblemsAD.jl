@@ -5,7 +5,7 @@ module LogDensityProblemsAD
 
 export ADgradient
 
-using DocStringExtensions: SIGNATURES
+using DocStringExtensions: FUNCTIONNAME
 import LogDensityProblems: logdensity, logdensity_and_gradient, capabilities, dimension
 using LogDensityProblems: LogDensityOrder
 
@@ -34,38 +34,34 @@ Base.parent(ℓ::ADGradientWrapper) = ℓ.ℓ
 Base.copy(x::ADGradientWrapper) = x # no-op, except for ForwardDiff
 
 """
-$(SIGNATURES)
+$(FUNCTIONNAME)(backend, ℓ; x = nothing)
 
-Wrap `P` using automatic differentiation to obtain a gradient.
+Wrap `ℓ` using automatic differentiation to obtain a gradient. `ℓ` should support the
+`LogDensityProblems` API for calculating log densities (gradient not needed).
 
-`kind` is usually a `Val` type with a symbol that refers to a package, for example
-```julia
-ADgradient(Val(:ForwardDiff), P)
-ADgradient(Val(:ReverseDiff), P)
-ADgradient(Val(:Zygote), P)
-```
+`backend` is a backend defined in [ADTypes.jl](https://docs.sciml.ai/ADTypes/stable/),
+eg `AutoForwardDiff()`.
+
 Some methods may be loaded only conditionally after the relevant package is loaded (eg
-`using Zygote`).
+`using Mooncake`).
 
-The symbol can also be used directly as eg
+The function `parent` can be used to retrieve `ℓ`.
 
-```julia
-ADgradient(:ForwardDiff, P)
-```
-
-and should mostly be equivalent if the compiler manages to fold the constant.
-
-The function `parent` can be used to retrieve the original argument.
+`x` can be provided is a vector to “prepare” the gradient. This may result in faster
+runtimes. When this is not applicable, this argument is silently ignored.
 
 !!! note
     With the default options, automatic differentiation preserves thread-safety. See
     exceptions and workarounds in the docstring for each backend.
 """
+function ADgradient end
+
 ADgradient(kind::Symbol, P; kwargs...) = ADgradient(Val{kind}(), P; kwargs...)
 
 #####
 ##### Empty method definitions for easier discoverability and backward compatibility
 #####
+
 function benchmark_ForwardDiff_chunks end
 function heuristic_chunks end
 

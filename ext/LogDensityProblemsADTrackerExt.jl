@@ -5,7 +5,7 @@ module LogDensityProblemsADTrackerExt
 
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
-import ADTypes
+using ADTypes: AutoTracker
 import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 import Tracker
 
@@ -13,9 +13,9 @@ struct TrackerGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
 end
 
-ADgradient(::ADTypes.AutoTracker, ℓ; x = nothing) = TrackerGradientLogDensity(ℓ)
+ADgradient(::AutoTracker, ℓ; x = nothing) = TrackerGradientLogDensity(ℓ)
 
-@deprecate ADgradient(::Val{:Tracker}, ℓ; x = nothing) ADgradient(ADTypes.AutoTracker(), ℓ; x)
+@deprecate ADgradient(::Val{:Tracker}, ℓ; x = nothing) ADgradient(AutoTracker(), ℓ; x)
 
 Base.show(io::IO, ∇ℓ::TrackerGradientLogDensity) = print(io, "Tracker AD wrapper for ", ∇ℓ.ℓ)
 

@@ -1,7 +1,7 @@
 module LogDensityProblemsADDifferentiationInterfaceExt
 
 import LogDensityProblemsAD
-import ADTypes
+using ADTypes: AbstractADType
 import DifferentiationInterface as DI
 
 """
@@ -15,7 +15,7 @@ Gradient wrapper which uses [DifferentiationInterface.jl](https://github.com/gda
 - `prep`: either `nothing` or the output of `DifferentiationInterface.prepare_gradient` applied to the logdensity and the provided input
 - `ℓ`: logdensity function, amenable to `LogDensityProblemsAD.logdensity(ℓ, x)`
 """
-struct DIGradient{B<:ADTypes.AbstractADType,P,L} <: LogDensityProblemsAD.ADGradientWrapper
+struct DIGradient{B<:AbstractADType,P,L} <: LogDensityProblemsAD.ADGradientWrapper
     backend::B
     prep::P
     ℓ::L
@@ -26,7 +26,7 @@ function logdensity_switched(x, ℓ)
     return LogDensityProblemsAD.logdensity(ℓ, x)
 end
 
-function LogDensityProblemsAD.ADgradient(backend::ADTypes.AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+function LogDensityProblemsAD.ADgradient(backend::AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)
     if x === nothing
         prep = nothing
     else
