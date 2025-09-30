@@ -23,18 +23,6 @@ If you want to use another backend from [ADTypes.jl](https://github.com/SciML/AD
 """
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
-    if x !== nothing  
-        @warn "`ADgradient`: Keyword argument `x` is ignored"  
-    end
-    if ad.mode === nothing
-        # Use default mode (Enzyme.Reverse)
-        return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ)
-    else
-        return LogDensityProblemsAD.ADgradient(Val(:Enzyme), ℓ; mode=ad.mode)
-    end
-end
-
 function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ; x::Union{Nothing,AbstractVector}=nothing) where {C}
     if C === nothing
         # Use default chunk size
@@ -48,20 +36,11 @@ function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoReverseDiff{T}, ℓ; x:
     return LogDensityProblemsAD.ADgradient(Val(:ReverseDiff), ℓ; compile = Val(T), x=x)
 end
 
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ; x::Union{Nothing,AbstractVector}=nothing)
-    if x !== nothing  
-        @warn "`ADgradient`: Keyword argument `x` is ignored"  
-    end
+function LogDensityProblemsAD.ADgradient(::ADTypes.AutoTracker, ℓ;
+                                         x::Union{Nothing,AbstractVector}=nothing)
     return LogDensityProblemsAD.ADgradient(Val(:Tracker), ℓ)
 end
 
-
-function LogDensityProblemsAD.ADgradient(::ADTypes.AutoZygote, ℓ; x::Union{Nothing,AbstractVector}=nothing)
-    if x !== nothing  
-        @warn "`ADgradient`: Keyword argument `x` is ignored"  
-    end
-    return LogDensityProblemsAD.ADgradient(Val(:Zygote), ℓ)
-end
 
 # Better error message if users forget to load DifferentiationInterface
 if isdefined(Base.Experimental, :register_error_hint)

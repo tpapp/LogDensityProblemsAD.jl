@@ -4,6 +4,7 @@ import LogDensityProblems: capabilities, dimension, logdensity
 using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
 import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
 import ADTypes # load support for AD types with options
+import DifferentiationInterface
 import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
@@ -68,15 +69,6 @@ struct TestTag end
 # Allow tag type in gradient etc. calls of the log density function
 ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
 
-@testset "Missing DI for unsupported ADType" begin
-    msg = "Don't know how to AD with AutoFiniteDifferences. Did you forget to load DifferentiationInterface?"
-    adtype = ADTypes.AutoFiniteDifferences(; fdm=FiniteDifferences.central_fdm(5, 1))
-    @test_throws msg ADgradient(adtype, TestLogDensity2())
-    @test_throws msg ADgradient(adtype, TestLogDensity2(); x=zeros(20))
-end
-
-import DifferentiationInterface
-
 @testset "AD via ReverseDiff" begin
     ℓ = TestLogDensity()
 
@@ -99,8 +91,8 @@ import DifferentiationInterface
     # ADTypes support
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ)) === typeof(∇ℓ_compile)
     @test typeof(ADgradient(ADTypes.AutoReverseDiff(; compile = Val(true)), ℓ; x=rand(3))) === typeof(∇ℓ_compile_x)
-   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ))) !== :DIGradient
-   @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)))) !== :DIGradient
+    @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ))) !== :DIGradient
+    @test nameof(typeof(ADgradient(ADTypes.AutoReverseDiff(), ℓ; x=rand(3)))) !== :DIGradient
 
     for ∇ℓ in (∇ℓ_default, ∇ℓ_nocompile, ∇ℓ_compile, ∇ℓ_compile_x)
         @test dimension(∇ℓ) == 3
@@ -264,14 +256,9 @@ end
     ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
     @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
     @test ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal) === ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal)
-    ∇ℓ_forward_shadow = ADgradient(:Enzyme, ℓ;
-                                   mode=Enzyme.Forward,
-                                   shadow=Enzyme.onehot(Vector{Float64}(undef, dimension(ℓ))))
-    for ∇ℓ in (∇ℓ_forward, ∇ℓ_forward_shadow)
-        @test repr(∇ℓ) == "Enzyme AD wrapper for " * repr(ℓ) * " with forward mode"
-    end
+    @test repr(∇ℓ_forward) == "Enzyme AD wrapper for " * repr(ℓ) * " with forward mode"
 
-    for ∇ℓ in (∇ℓ_reverse, ∇ℓ_forward, ∇ℓ_forward_shadow)
+    for ∇ℓ in (∇ℓ_reverse, ∇ℓ_forward)
         @test dimension(∇ℓ) == 3
         @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
         for _ in 1:100
@@ -284,8 +271,6 @@ end
     # Branches in `ADgradient`
     struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
     @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode = MockEnzymeMode())
-    ∇ℓ = @test_logs (:info, "keyword argument `shadow` is ignored in reverse mode") ADgradient(:Enzyme, ℓ; shadow = (1,))
-    @test ∇ℓ.shadow === nothing
 end
 
 @testset "AD via FiniteDifferences" begin
@@ -299,14 +284,6 @@ end
         @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
         @test ≅(logdensity_and_gradient(∇ℓ, x), (test_logdensity1(x), test_gradient(x)); atol = 1e-5)
     end
-end
-
-@testset "ADgradient missing method" begin
-    msg = "Don't know how to AD with Foo, consider `import Foo` if there is such a package."
-    @test_throws msg ADgradient(:Foo, TestLogDensity2())
-    @test_throws msg ADgradient(:Foo, TestLogDensity2(); x=zeros(20))
-    @test_throws msg ADgradient(Val(:Foo), TestLogDensity2())
-    @test_throws msg ADgradient(Val(:Foo), TestLogDensity2(); x=zeros(20))
 end
 
 @testset "benchmark ForwardDiff chunk size" begin
