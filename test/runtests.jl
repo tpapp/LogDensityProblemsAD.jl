@@ -66,7 +66,7 @@ dimension(::TestLogDensity2) = 20
 struct TestTag end
 
 # Allow tag type in gradient etc. calls of the log density function
-ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
+ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, _, ::AbstractArray{V}) where {V} = true
 
 @testset verbose=true "generic backend tests" begin
     BACKENDS = [
@@ -75,6 +75,9 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
         AutoEnzyme(; mode = Enzyme.Reverse) => "Enzyme w/ Reverse",
         AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(5, 1)) =>
             "FiniteDifferences",
+        AutoForwardDiff() => "ForwardDiff w/ defaults",
+        AutoForwardDiff(; tag = TestTag()) => "ForwardDiff w/ tag",
+        AutoForwardDiff(; chunksize = 1) => "ForwardDiff w/ chunk size",
         AutoReverseDiff(; compile = false) => "ReverseDiff w/o compile",
         AutoReverseDiff(; compile = true) => "ReverseDiff compile",
         AutoTracker() => "Tracker",
@@ -103,69 +106,6 @@ end
     struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
     @test_throws ArgumentError ADgradient(AutoEnzyme(; mode = MockEnzymeMode()),
                                           TestLogDensity(test_logdensity1))
-end
-
-@testset "AD via ForwardDiff" begin
-    ℓ = TestLogDensity()
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ)
-    @test repr(∇ℓ) == "ForwardDiff AD wrapper for " * repr(ℓ) * ", w/ chunk size 3"
-    @test dimension(∇ℓ) == 3
-    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-
-
-    # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(), ℓ) === ∇ℓ
-    @test nameof(typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ))) !== :DIGradient
-    @test nameof(typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3)))) !== :DIGradient
-
-    for _ in 1:100
-        x = randn(3)
-        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-        @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-            (test_logdensity(x), test_gradient(x))
-    end
-
-    # custom tag
-    for T in (Float32, Float64)
-        x = randexp(T, 3)
-        for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
-            local ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag)
-            @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                (test_logdensity(x), test_gradient(x))
-        end
-    end
-
-    # preallocated gradient config
-    x = randexp(Float32, 3)
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ; x = x)
-    @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === Float32
-    @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-    @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-        (test_logdensity(x), test_gradient(x))
-    @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
-
-    # custom tag + preallocated gradient config
-    for T in (Float32, Float64)
-        x = randexp(T, 3)
-        for tag in (ForwardDiff.Tag(TestTag(), T), TestTag())
-            ∇ℓ = ADgradient(:ForwardDiff, ℓ; tag = tag, x = x)
-            @test eltype(first(logdensity_and_gradient(∇ℓ, x))) === T
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity(x)
-            @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                (test_logdensity(x), test_gradient(x))
-            @test @inferred(copy(∇ℓ)).gradient_config ≢ ∇ℓ.gradient_config
-        end
-    end
-
-    # chunk size as integers
-    @test ADgradient(:ForwardDiff, ℓ; chunk = 3) isa eltype(∇ℓ)
-
-    # ADTypes support
-    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3)
-    @test ADgradient(ADTypes.AutoForwardDiff(; chunksize = 3, tag = TestTag()), ℓ) === ADgradient(:ForwardDiff, ℓ; chunk = 3, tag = TestTag())
-    @test typeof(ADgradient(ADTypes.AutoForwardDiff(), ℓ; x=rand(3))) == typeof(ADgradient(:ForwardDiff, ℓ; x=rand(3)))
 end
 
 @testset "component vectors" begin

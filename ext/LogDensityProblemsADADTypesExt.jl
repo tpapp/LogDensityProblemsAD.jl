@@ -23,15 +23,6 @@ If you want to use another backend from [ADTypes.jl](https://github.com/SciML/AD
 """
 LogDensityProblemsAD.ADgradient(::ADTypes.AbstractADType, ℓ)
 
-function LogDensityProblemsAD.ADgradient(ad::ADTypes.AutoForwardDiff{C}, ℓ; x::Union{Nothing,AbstractVector}=nothing) where {C}
-    if C === nothing
-        # Use default chunk size
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; tag = ad.tag, x=x)
-    else
-        return LogDensityProblemsAD.ADgradient(Val(:ForwardDiff), ℓ; chunk = C, tag = ad.tag, x=x)
-    end
-end
-
 # Better error message if users forget to load DifferentiationInterface
 if isdefined(Base.Experimental, :register_error_hint)
     function __init__()
