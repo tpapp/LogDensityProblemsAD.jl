@@ -6,7 +6,7 @@ module LogDensityProblemsADReverseDiffExt
 using LogDensityProblemsAD: ADGradientWrapper, dimension, logdensity
 
 using ADTypes: AutoReverseDiff
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import ReverseDiff
 import ReverseDiff: DiffResults
 
@@ -29,7 +29,7 @@ function _compiledtape(ℓ, ::Val{true}, x)
 end
 
 function ADgradient(::AutoReverseDiff{C}, ℓ;
-                    x::Union{Nothing,AbstractVector} = nothing) where C
+                    x::__VALIDX = nothing) where C
     ReverseDiffLogDensity(ℓ, _compiledtape(ℓ, Val(C), x))
 end
 

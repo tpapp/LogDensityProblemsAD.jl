@@ -58,6 +58,9 @@ function ADgradient end
 
 ADgradient(kind::Symbol, P; kwargs...) = ADgradient(Val{kind}(), P; kwargs...)
 
+"Valid type for the `x` argument in [`ADgradient`](@ref). Internal."
+const __VALIDX = Union{Nothing,AbstractVector}
+
 #####
 ##### Empty method definitions for easier discoverability and backward compatibility
 #####

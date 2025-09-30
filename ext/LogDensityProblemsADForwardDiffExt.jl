@@ -7,7 +7,7 @@ using LogDensityProblemsAD: ADGradientWrapper, dimension, logdensity
 
 using ADTypes: AutoForwardDiff
 using DocStringExtensions: SIGNATURES
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import ForwardDiff
 import ForwardDiff: DiffResults
 
@@ -58,8 +58,7 @@ $(SIGNATURES)
 When `x` is provided, it is used as a buffer. This is not thread-safe. `copy` the result
 for use in multiple threads.
 """
-function ADgradient(ad::AutoForwardDiff{C}, ℓ;
-                    x::Union{Nothing,AbstractVector} = nothing) where C
+function ADgradient(ad::AutoForwardDiff{C}, ℓ; x::__VALIDX = nothing) where C
     (; tag) = ad
     _chunk = ForwardDiff.Chunk(something(C, dimension(ℓ))) # will cap chunk size to default
     gradient_config = if x ≡ nothing

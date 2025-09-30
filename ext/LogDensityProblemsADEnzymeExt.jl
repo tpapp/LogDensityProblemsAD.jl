@@ -9,7 +9,7 @@ using ADTypes: AutoEnzyme
 using ArgCheck: @argcheck
 import Enzyme
 using Enzyme: EnzymeCore
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 
 struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,
                                            Enzyme.ReverseMode}} <: ADGradientWrapper
@@ -17,7 +17,7 @@ struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,
     mode::M
 end
 
-function ADgradient(ad::AutoEnzyme, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+function ADgradient(ad::AutoEnzyme, ℓ; x::__VALIDX = nothing)
     (; mode) = ad
     @argcheck(mode isa Union{Nothing,Enzyme.ForwardMode,Enzyme.ReverseMode},
               "currently automatic differentiation via Enzyme only supports " *

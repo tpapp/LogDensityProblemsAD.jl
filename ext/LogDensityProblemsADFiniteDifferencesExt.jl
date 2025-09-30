@@ -6,7 +6,7 @@ module LogDensityProblemsADFiniteDifferencesExt
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
 using ADTypes: AutoFiniteDifferences
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import FiniteDifferences
 
 struct FiniteDifferencesGradientLogDensity{L,M} <: ADGradientWrapper
@@ -15,7 +15,7 @@ struct FiniteDifferencesGradientLogDensity{L,M} <: ADGradientWrapper
     fdm::M
 end
 
-function ADgradient(ad::AutoFiniteDifferences, ℓ; x = nothing)
+function ADgradient(ad::AutoFiniteDifferences, ℓ; x::__VALIDX = nothing)
     FiniteDifferencesGradientLogDensity(ℓ, ad.fdm)
 end
 

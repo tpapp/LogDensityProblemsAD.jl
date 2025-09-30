@@ -26,7 +26,8 @@ function logdensity_switched(x, ℓ)
     return LogDensityProblemsAD.logdensity(ℓ, x)
 end
 
-function LogDensityProblemsAD.ADgradient(backend::AbstractADType, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+function LogDensityProblemsAD.ADgradient(backend::AbstractADType, ℓ;
+                                         x::LogDensityProblemsAD.__VALIDX = nothing)
     if x === nothing
         prep = nothing
     else

@@ -6,14 +6,14 @@ module LogDensityProblemsADZygoteExt
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
 using ADTypes: AutoZygote
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import Zygote
 
 struct ZygoteGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
 end
 
-function ADgradient(::AutoZygote, ℓ; x::Union{Nothing,AbstractVector}=nothing)
+function ADgradient(::AutoZygote, ℓ; x::__VALIDX = nothing)
     ZygoteGradientLogDensity(ℓ)
 end
 
