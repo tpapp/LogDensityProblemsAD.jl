@@ -84,18 +84,21 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, _, ::AbstractArray{V})
         AutoZygote() => "Zygote",
     ]
     ℓ = TestLogDensity(test_logdensity1)
-    x = zeros(dimension(ℓ))
-    for (backend, backend_label) in BACKENDS
-        for (∇ℓ, ∇ℓ_label) in [ADgradient(backend, ℓ) => "$(backend_label) no prep",
-                               ADgradient(backend, ℓ; x) => "$(backend_label) w/ prep"]
-            @testset "$(∇ℓ_label)" begin
-                @test dimension(∇ℓ) == dimension(ℓ)
-                @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-                for _ in 1:10
-                    x = randn(3)
-                    @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-                    @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
-                        (test_logdensity1(x), test_gradient(x)) atol = 1e-5
+    D = dimension(ℓ)
+    for x in Any[zeros(D), zeros(Float32, D), ComponentVector(x = zeros(D))]
+        tol = eps(eltype(x))^0.25 # Float32 needs lower tolerance
+        for (backend, backend_label) in BACKENDS
+            for (∇ℓ, ∇ℓ_label) in [ADgradient(backend, ℓ) => "$(backend_label) no prep",
+                                   ADgradient(backend, ℓ; x) => "$(backend_label) w/ prep"]
+                @testset "$(∇ℓ_label)" begin
+                    @test dimension(∇ℓ) == dimension(ℓ)
+                    @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
+                    for _ in 1:10
+                        randn!(x)
+                        @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
+                        @test @inferred(logdensity_and_gradient(∇ℓ, x)) ≅
+                            (test_logdensity1(x), test_gradient(x)) atol = tol
+                    end
                 end
             end
         end
@@ -106,20 +109,4 @@ end
     struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
     @test_throws ArgumentError ADgradient(AutoEnzyme(; mode = MockEnzymeMode()),
                                           TestLogDensity(test_logdensity1))
-end
-
-@testset "component vectors" begin
-    # test with something else than `Vector`
-    # cf https://github.com/tpapp/LogDensityProblemsAD.jl/pull/3
-    ℓ = TestLogDensity()
-    ∇ℓ = ADgradient(:ForwardDiff, ℓ)
-    x = zeros(3)
-    y = ComponentVector(x = x)
-    @test @inferred(logdensity(∇ℓ, y)) ≅ test_logdensity(x)
-    @test @inferred(logdensity_and_gradient(∇ℓ, y)) ≅
-        (test_logdensity(x), test_gradient(x))
-    ∇ℓ2 = ADgradient(:ForwardDiff, ℓ; x = y) # preallocate GradientConfig
-    @test @inferred(logdensity(∇ℓ2, y)) ≅ test_logdensity(x)
-    @test @inferred(logdensity_and_gradient(∇ℓ2, y)) ≅
-        (test_logdensity(x), test_gradient(x))
 end
