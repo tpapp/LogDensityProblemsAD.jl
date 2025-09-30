@@ -17,6 +17,8 @@ $(SIGNATURES)
 Default chunk sizes to try for benchmarking. Fewer than `M`, always contains `1` and `N`.
 """
 function heuristic_chunks(N, M = 20)
+    Base.depwarn("heuristic_chunks(...) is deprecated and will be removed",
+                 :heuristic_chunks)
     step = max(N ÷ M, 1)
     Ns = 1:step:N
     if N ∉ Ns
@@ -47,6 +49,8 @@ function benchmark_ForwardDiff_chunks(ℓ;
                                       chunks = heuristic_chunks(dimension(ℓ), 20),
                                       markprogress = true,
                                       x = zeros(dimension(ℓ)))
+    Base.depwarn("benchmark_ForwardDiff_chunks(...) is deprecated and will be removed",
+                 :benchmark_ForwardDiff_chunks)
     map(chunks) do chunk
         ∇ℓ = ADgradient(Val(:ForwardDiff), ℓ; chunk = Chunk(chunk))
         markprogress && print(".")

@@ -5,7 +5,6 @@ using LogDensityProblems: logdensity_and_gradient, LogDensityOrder
 import FiniteDifferences, ForwardDiff, Enzyme, Tracker, Zygote, ReverseDiff # backends
 using ADTypes # load support for AD types with options
 import DifferentiationInterface
-import BenchmarkTools                            # load the heuristic chunks code
 using ComponentArrays: ComponentVector           # test with other vector types
 
 ####
@@ -69,7 +68,7 @@ struct TestTag end
 # Allow tag type in gradient etc. calls of the log density function
 ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(logdensity),typeof(TestLogDensity())}, ::AbstractArray{V}) where {V} = true
 
-@testset "generic backend tests" begin
+@testset verbose=true "generic backend tests" begin
     BACKENDS = [
         AutoEnzyme() => "Enzyme defaults",
         AutoEnzyme(; mode = Enzyme.Forward) => "Enzyme w/ Forward",
@@ -232,8 +231,4 @@ end
     @test @inferred(logdensity(∇ℓ2, y)) ≅ test_logdensity(x)
     @test @inferred(logdensity_and_gradient(∇ℓ2, y)) ≅
         (test_logdensity(x), test_gradient(x))
-end
-
-@testset "chunk heuristics for ForwardDiff" begin
-    @test LogDensityProblemsAD.heuristic_chunks(82) == vcat(1:4:81, [82])
 end
