@@ -71,6 +71,9 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
 
 @testset "generic backend tests" begin
     BACKENDS = [
+        AutoEnzyme() => "Enzyme defaults",
+        AutoEnzyme(; mode = Enzyme.Forward) => "Enzyme w/ Forward",
+        AutoEnzyme(; mode = Enzyme.Reverse) => "Enzyme w/ Reverse",
         AutoFiniteDifferences(; fdm = FiniteDifferences.central_fdm(5, 1)) =>
             "FiniteDifferences",
         AutoTracker() => "Tracker",
@@ -94,6 +97,13 @@ ForwardDiff.checktag(::Type{ForwardDiff.Tag{TestTag, V}}, ::Base.Fix1{typeof(log
         end
     end
 end
+
+@testset "Enzyme error for unsupported mode" begin
+    struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
+    @test_throws ArgumentError ADgradient(AutoEnzyme(; mode = MockEnzymeMode()),
+                                          TestLogDensity(test_logdensity1))
+end
+
 
 @testset "AD via ReverseDiff" begin
     ℓ = TestLogDensity()
@@ -226,39 +236,4 @@ end
 
 @testset "chunk heuristics for ForwardDiff" begin
     @test LogDensityProblemsAD.heuristic_chunks(82) == vcat(1:4:81, [82])
-end
-
-@testset "AD via Enzyme" begin
-    ℓ = TestLogDensity(test_logdensity1)
-
-    ∇ℓ_reverse = ADgradient(:Enzyme, ℓ)
-    ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
-    @test ∇ℓ_reverse === ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse)
-    @test ∇ℓ_reverse.mode === Enzyme.ReverseWithPrimal
-    @test ADgradient(:Enzyme, ℓ; mode=Enzyme.Reverse) === ADgradient(:Enzyme, ℓ; mode=Enzyme.ReverseWithPrimal)
-    @test repr(∇ℓ_reverse) == "Enzyme AD wrapper for " * repr(ℓ) * " with reverse mode"
-
-    # ADTypes support
-    @test ADgradient(ADTypes.AutoEnzyme(), ℓ) === ∇ℓ_reverse
-    @test nameof(typeof(ADgradient(ADTypes.AutoEnzyme(), ℓ))) !== :DIGradient
-    @test nameof(typeof(ADgradient(ADTypes.AutoEnzyme(), ℓ; x=rand(3)))) !== :DIGradient
-
-    ∇ℓ_forward = ADgradient(:Enzyme, ℓ; mode=Enzyme.Forward)
-    @test ADgradient(ADTypes.AutoEnzyme(;mode=Enzyme.Forward), ℓ) === ∇ℓ_forward
-    @test ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal) === ADgradient(:Enzyme, ℓ; mode=Enzyme.ForwardWithPrimal)
-    @test repr(∇ℓ_forward) == "Enzyme AD wrapper for " * repr(ℓ) * " with forward mode"
-
-    for ∇ℓ in (∇ℓ_reverse, ∇ℓ_forward)
-        @test dimension(∇ℓ) == 3
-        @test capabilities(∇ℓ) ≡ LogDensityOrder(1)
-        for _ in 1:100
-            x = randn(3)
-            @test @inferred(logdensity(∇ℓ, x)) ≅ test_logdensity1(x)
-            @test logdensity_and_gradient(∇ℓ, x) ≅ (test_logdensity1(x), test_gradient(x))
-        end
-    end
-
-    # Branches in `ADgradient`
-    struct MockEnzymeMode <: supertype(typeof(Enzyme.Reverse)) end # errors as unsupported
-    @test_throws ArgumentError ADgradient(:Enzyme, ℓ; mode = MockEnzymeMode())
 end

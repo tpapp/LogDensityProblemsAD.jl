@@ -31,12 +31,10 @@ function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
 end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ForwardMode},
-                                 x::AbstractVector)
+                                 x::AbstractVector{T}) where T
     (; ℓ, mode) = ∇ℓ
-    ∂ℓ_∂x, y = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
-                               Enzyme.Const(ℓ),
-                               Enzyme.BatchDuplicated(x, Enzyme.onehot(x)))
-    y, collect(∂ℓ_∂x)
+    result = Enzyme.gradient(mode, Base.Fix1(logdensity, ℓ), x)
+    T(result.val)::T, collect(T, only(result.derivs))::Vector{T}
 end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
