@@ -5,42 +5,24 @@ module LogDensityProblemsADEnzymeExt
 
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
 
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+using ADTypes: AutoEnzyme
+using ArgCheck: @argcheck
 import Enzyme
 using Enzyme: EnzymeCore
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 
-struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,Enzyme.ReverseMode},S} <: ADGradientWrapper
+struct EnzymeGradientLogDensity{L,M<:Union{Enzyme.ForwardMode,
+                                           Enzyme.ReverseMode}} <: ADGradientWrapper
     ℓ::L
     mode::M
-    shadow::S # only used in forward mode
 end
 
-"""
-    ADgradient(:Enzyme, ℓ; kwargs...)
-    ADgradient(Val(:Enzyme), ℓ; kwargs...)
-
-Gradient using algorithmic/automatic differentiation via Enzyme.
-
-# Keyword arguments
-
-- `mode::Enzyme.Mode`: Differentiation mode (default: `Enzyme.Reverse`).
-  Currently only `Enzyme.Reverse` and `Enzyme.Forward` are supported.
-
-- `shadow`: Collection of one-hot vectors for each entry of the inputs `x` to the log density
-  `ℓ`, or `nothing` (default: `nothing`). This keyword argument is only used in forward
-  mode. By default, it will be recomputed in every call of `logdensity_and_gradient(ℓ, x)`.
-  For performance reasons it is recommended to compute it only once when calling `ADgradient`.
-  The one-hot vectors can be constructed, e.g., with `Enzyme.onehot(x)`.
-"""
-function ADgradient(::Val{:Enzyme}, ℓ; mode::Enzyme.Mode = Enzyme.Reverse, shadow = nothing)
-    mode isa Union{Enzyme.ForwardMode,Enzyme.ReverseMode} ||
-        throw(ArgumentError("currently automatic differentiation via Enzyme only supports " *
-                            "`Enzyme.Forward` and `Enzyme.Reverse` modes"))
-    if mode isa Enzyme.ReverseMode && shadow !== nothing
-        @info "keyword argument `shadow` is ignored in reverse mode"
-        shadow = nothing
-    end
-    return EnzymeGradientLogDensity(ℓ, EnzymeCore.WithPrimal(mode), shadow)
+function ADgradient(ad::AutoEnzyme, ℓ; x::__VALIDX = nothing)
+    (; mode) = ad
+    @argcheck(mode isa Union{Nothing,Enzyme.ForwardMode,Enzyme.ReverseMode},
+              "currently automatic differentiation via Enzyme only supports " *
+                  "`Enzyme.Forward` and `Enzyme.Reverse` modes")
+    EnzymeGradientLogDensity(ℓ, Enzyme.WithPrimal(something(mode, Enzyme.Reverse)))
 end
 
 function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
@@ -49,13 +31,10 @@ function Base.show(io::IO, ∇ℓ::EnzymeGradientLogDensity)
 end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ForwardMode},
-                                 x::AbstractVector)
-    (; ℓ, mode, shadow) = ∇ℓ
-    _shadow = shadow === nothing ? Enzyme.onehot(x) : shadow
-    ∂ℓ_∂x, y = Enzyme.autodiff(mode, logdensity, Enzyme.BatchDuplicated,
-                               Enzyme.Const(ℓ),
-                               Enzyme.BatchDuplicated(x, _shadow))
-    return y, collect(∂ℓ_∂x)
+                                 x::AbstractVector{T}) where T
+    (; ℓ, mode) = ∇ℓ
+    result = Enzyme.gradient(mode, Base.Fix1(logdensity, ℓ), x)
+    T(result.val)::T, collect(T, only(result.derivs))::Vector{T}
 end
 
 function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme.ReverseMode},
@@ -66,5 +45,9 @@ function logdensity_and_gradient(∇ℓ::EnzymeGradientLogDensity{<:Any,<:Enzyme
                            Enzyme.Const(ℓ), Enzyme.Duplicated(x, ∂ℓ_∂x))
     y, ∂ℓ_∂x
 end
+
+@deprecate(ADgradient(::Val{:Enzyme}, P; mode = Enzyme.Reverse, x = nothing,
+                      shadow = nothing),
+           ADgradient(AutoEnzyme(; mode), P; x))
 
 end # module

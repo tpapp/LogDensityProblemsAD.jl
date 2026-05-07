@@ -3,9 +3,11 @@ Gradient AD implementation using ForwardDiff.
 """
 module LogDensityProblemsADForwardDiffExt
 
-using LogDensityProblemsAD: ADGradientWrapper, SIGNATURES, dimension, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, dimension, logdensity
 
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
+using ADTypes: AutoForwardDiff
+using DocStringExtensions: SIGNATURES
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import ForwardDiff
 import ForwardDiff: DiffResults
 
@@ -29,11 +31,6 @@ function Base.show(io::IO, ℓ::ForwardDiffLogDensity)
           ", w/ chunk size ", ForwardDiff.chunksize(ℓ.chunk))
 end
 
-_ensure_chunk(chunk::ForwardDiff.Chunk) = chunk
-_ensure_chunk(chunk::Integer) = ForwardDiff.Chunk(chunk)
-
-_default_chunk(ℓ) = _ensure_chunk(dimension(ℓ))
-
 function Base.copy(fℓ::ForwardDiffLogDensity{L,C,T,<:ForwardDiff.GradientConfig}) where {L,C,T}
     (; ℓ, chunk, tag, gradient_config) = fℓ
     ForwardDiffLogDensity(ℓ, chunk, tag, copy(gradient_config))
@@ -56,40 +53,14 @@ function _make_gradient_config(f::F, x, chunk::ForwardDiff.Chunk, tag) where {F}
 end
 
 """
-    ADgradient(:ForwardDiff, ℓ; chunk, tag, x)
-    ADgradient(Val(:ForwardDiff), ℓ; chunk, tag, x)
+$(SIGNATURES)
 
-Wrap a log density that supports evaluation of `Value` to handle `ValueGradient`, using
-`ForwardDiff`.
-
-Keyword arguments:
-
-- `chunk` can be used to set the chunk size, an integer or a `ForwardDiff.Chunk`
-
-- `tag` (default: `nothing`) can be used to set a tag for `ForwardDiff`.
-  If `tag` is neither `nothing` nor a `ForwardDiff.Tag`, the tag for `ForwardDiff` is set
-  to `ForwardDiff.Tag(tag, eltype(x))` where `x` is the vector at which the logdensity and
-  its gradient are evaluated. 
-
-- `x` (default: `nothing`) will be used to preallocate a `ForwardDiff.GradientConfig` with
-  the given vector. With the default, one is created for each evaluation.
-
-Note that **pre-allocating a `ForwardDiff.GradientConfig` is not thread-safe**. You can
-[`copy`](@ref) the results for concurrent evaluation:
-```julia
-∇ℓ1 = ADgradient(:ForwardDiff, ℓ; x = zeros(dimension(ℓ)))
-∇ℓ2 = copy(∇ℓ1) # you can now use both, in different threads
-```
-
-See also the ForwardDiff documentation regarding
-[`ForwardDiff.GradientConfig`](https://juliadiff.org/ForwardDiff.jl/stable/user/api/#Preallocating/Configuring-Work-Buffers)
-and [chunks and tags](https://juliadiff.org/ForwardDiff.jl/stable/user/advanced/).
+When `x` is provided, it is used as a buffer. This is not thread-safe. `copy` the result
+for use in multiple threads.
 """
-function ADgradient(::Val{:ForwardDiff}, ℓ;
-                    chunk::Union{Integer,ForwardDiff.Chunk} = _default_chunk(ℓ),
-                    tag = nothing,
-                    x::Union{Nothing,AbstractVector} = nothing)
-    _chunk = _ensure_chunk(chunk)
+function ADgradient(ad::AutoForwardDiff{C}, ℓ; x::__VALIDX = nothing) where C
+    (; tag) = ad
+    _chunk = ForwardDiff.Chunk(something(C, dimension(ℓ))) # will cap chunk size to default
     gradient_config = if x ≡ nothing
         nothing
     else
@@ -97,6 +68,9 @@ function ADgradient(::Val{:ForwardDiff}, ℓ;
     end
     ForwardDiffLogDensity(ℓ, _chunk, tag, gradient_config)
 end
+
+@deprecate(ADgradient(::Val{:ForwardDiff}, ℓ; x = nothing, chunk = nothing, tag = nothing),
+           ADgradient(AutoForwardDiff(; tag, chunksize = chunk), ℓ; x))
 
 function logdensity_and_gradient(fℓ::ForwardDiffLogDensity, x::AbstractVector)
     (; ℓ, chunk, tag, gradient_config) = fℓ
