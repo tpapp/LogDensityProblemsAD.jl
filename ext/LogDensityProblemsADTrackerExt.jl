@@ -3,8 +3,9 @@ Gradient AD implementation using Tracker.
 """
 module LogDensityProblemsADTrackerExt
 
-using LogDensityProblemsAD: ADGradientWrapper, logdensity
+using LogDensityProblemsAD: ADGradientWrapper, logdensity, __VALIDX
 
+using ADTypes: AutoTracker
 import LogDensityProblemsAD: ADgradient, logdensity_and_gradient
 import Tracker
 
@@ -12,15 +13,11 @@ struct TrackerGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
 end
 
-"""
-    ADgradient(:Tracker, ℓ)
-    ADgradient(Val(:Tracker), ℓ)
+function ADgradient(::AutoTracker, ℓ; x::__VALIDX = nothing)
+    TrackerGradientLogDensity(ℓ)
+end
 
-Gradient using algorithmic/automatic differentiation via Tracker.
-
-This package has been deprecated in favor of Zygote, but we keep the interface available.
-"""
-ADgradient(::Val{:Tracker}, ℓ) = TrackerGradientLogDensity(ℓ)
+@deprecate ADgradient(::Val{:Tracker}, ℓ; x = nothing) ADgradient(AutoTracker(), ℓ; x)
 
 Base.show(io::IO, ∇ℓ::TrackerGradientLogDensity) = print(io, "Tracker AD wrapper for ", ∇ℓ.ℓ)
 

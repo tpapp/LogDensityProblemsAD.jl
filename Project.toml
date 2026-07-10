@@ -4,11 +4,12 @@ authors = ["Tamás K. Papp <tkpapp@gmail.com>"]
 version = "1.13.1"
 
 [deps]
+ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
+ArgCheck = "dce04be8-c92d-5529-be00-80e4d2c0e197"
 DocStringExtensions = "ffbed154-4ef7-542d-bbb7-c09d3a79fcae"
 LogDensityProblems = "6fdf6af0-433a-55f7-b3ed-c6c6e0b8df7c"
 
 [weakdeps]
-ADTypes = "47edcb42-4c32-4615-8424-f2b9edc5f35b"
 BenchmarkTools = "6e4b80f9-dd63-53aa-95a3-0cdb28fa8baf"
 DifferentiationInterface = "a0c0ee7d-e4b9-4e03-894e-1c5f64a51d63"
 Enzyme = "7da242da-08ed-463a-9acd-ee780be4f1d9"
@@ -19,8 +20,7 @@ Tracker = "9f7883ad-71c0-57eb-9f7f-b5c9e6d3789c"
 Zygote = "e88e6eb3-aa80-5325-afca-941959d7151f"
 
 [extensions]
-LogDensityProblemsADADTypesExt = "ADTypes"
-LogDensityProblemsADDifferentiationInterfaceExt = ["ADTypes", "DifferentiationInterface"]
+LogDensityProblemsADDifferentiationInterfaceExt = ["DifferentiationInterface"]
 LogDensityProblemsADEnzymeExt = "Enzyme"
 LogDensityProblemsADFiniteDifferencesExt = "FiniteDifferences"
 LogDensityProblemsADForwardDiffBenchmarkToolsExt = ["BenchmarkTools", "ForwardDiff"]
@@ -31,6 +31,7 @@ LogDensityProblemsADZygoteExt = "Zygote"
 
 [compat]
 ADTypes = "1"
+ArgCheck = "2"
 BenchmarkTools = "1"
 DifferentiationInterface = "0.6, 0.7"
 DocStringExtensions = "0.8, 0.9"
