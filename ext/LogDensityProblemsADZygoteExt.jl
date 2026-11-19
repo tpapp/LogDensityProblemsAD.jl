@@ -4,21 +4,20 @@ Gradient AD implementation using Zygote.
 module LogDensityProblemsADZygoteExt
 
 using LogDensityProblemsAD: ADGradientWrapper, logdensity
-    
-import LogDensityProblemsAD: ADgradient, logdensity_and_gradient    
+
+using ADTypes: AutoZygote
+import LogDensityProblemsAD: ADgradient, logdensity_and_gradient, __VALIDX
 import Zygote
 
 struct ZygoteGradientLogDensity{L} <: ADGradientWrapper
     ℓ::L
 end
 
-"""
-    ADgradient(:Zygote, ℓ)
-    ADgradient(Val(:Zygote), ℓ)
+function ADgradient(::AutoZygote, ℓ; x::__VALIDX = nothing)
+    ZygoteGradientLogDensity(ℓ)
+end
 
-Gradient using algorithmic/automatic differentiation via Zygote.
-"""
-ADgradient(::Val{:Zygote}, ℓ) = ZygoteGradientLogDensity(ℓ)
+@deprecate ADgradient(::Val{:Zygote}, ℓ; x = nothing) ADgradient(AutoZygote(), ℓ; x)
 
 Base.show(io::IO, ∇ℓ::ZygoteGradientLogDensity) = print(io, "Zygote AD wrapper for ", ∇ℓ.ℓ)
 
